@@ -1,14 +1,186 @@
 <template>
-  <div>started</div>
+  <grid-layout
+    v-model:layout="layout"
+    :col-num="12"
+    :row-height="30"
+    :margin="[10, 10]"
+    :is-mirrored="false"
+    is-draggable
+    is-resizable
+    vertical-compact
+    use-css-transforms
+  >
+    <grid-item
+      v-for="item in layout"
+      :key="item.i"
+      class="item"
+      :x="item.x"
+      :y="item.y"
+      :w="item.w"
+      :h="item.h"
+      :i="item.i"
+    >
+      {{ item.i }}
+    </grid-item>
+  </grid-layout>
 </template>
 
-<script lang="ts">
+<script>
+import GridItem from './components/GridItem.vue'
+import GridLayout from './components/GridLayout.vue'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'App',
   components: {
-
+    GridItem,
+    GridLayout
+  },
+  data () {
+    return {
+      layout: [
+        {
+          h:2,
+          i:'0',
+          w:2,
+          x:0,
+          y:0
+        },
+        {
+          h:4,
+          i:'1',
+          w:2,
+          x:2,
+          y:0
+        },
+        {
+          h:5,
+          i:'2',
+          w:2,
+          x:4,
+          y:0
+        },
+        {
+          h:3,
+          i:'3',
+          w:2,
+          x:6,
+          y:0
+        },
+        {
+          h:3,
+          i:'4',
+          w:2,
+          x:8,
+          y:0
+        },
+        {
+          h:3,
+          i:'5',
+          w:2,
+          x:10,
+          y:0
+        },
+        {
+          h:5,
+          i:'6',
+          w:2,
+          x:0,
+          y:5
+        },
+        {
+          h:5,
+          i:'7',
+          w:2,
+          x:2,
+          y:5
+        },
+        {
+          h:5,
+          i:'8',
+          w:2,
+          x:4,
+          y:5
+        },
+        {
+          h:4,
+          i:'9',
+          w:2,
+          x:6,
+          y:3
+        },
+        {
+          h:4,
+          i:'10',
+          w:2,
+          x:8,
+          y:4
+        },
+        {
+          h:4,
+          i:'11',
+          w:2,
+          x:10,
+          y:4
+        },
+        {
+          h:5,
+          i:'12',
+          w:2,
+          x:0,
+          y:10
+        },
+        {
+          h:5,
+          i:'13',
+          w:2,
+          x:2,
+          y:10
+        },
+        {
+          h:4,
+          i:'14',
+          w:2,
+          x:4,
+          y:8
+        },
+        {
+          h:4,
+          i:'15',
+          w:2,
+          x:6,
+          y:8
+        },
+        {
+          h:5,
+          i:'16',
+          w:2,
+          x:8,
+          y:10
+        },
+        {
+          h:2,
+          i:'17',
+          w:2,
+          x:10,
+          y:4
+        },
+        {
+          h:3,
+          i:'18',
+          w:2,
+          x:0,
+          y:9
+        },
+        {
+          h:2,
+          i:'19',
+          w:2,
+          x:2,
+          y:6
+        }
+      ]
+    }
   }
 })
 </script>

@@ -27,7 +27,9 @@
     "src/**/*.vue",
     "tests/unit/**/*.spec.ts",
     // js
-    "src/**/*.js"
+    "src/**/*.js",
+    "node_modules/highlight.js/types/index.d.ts",
+    "node_modules/highlight.js/types/index.d.ts"
   ],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }
