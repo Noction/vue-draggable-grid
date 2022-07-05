@@ -3,25 +3,16 @@
     v-model:layout="layout"
     :col-num="12"
     :row-height="30"
-    :margin="[10, 10]"
+    :margin="margin"
     :is-mirrored="false"
     is-draggable
     is-resizable
     vertical-compact
     use-css-transforms
   >
-    <grid-item
-      v-for="item in layout"
-      :key="item.i"
-      class="item"
-      :x="item.x"
-      :y="item.y"
-      :w="item.w"
-      :h="item.h"
-      :i="item.i"
-    >
-      {{ item.i }}
-    </grid-item>
+    <template #default="slotProps">
+      {{ slotProps.item }}
+    </template>
   </grid-layout>
 </template>
 
@@ -33,7 +24,6 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'App',
   components: {
-    GridItem,
     GridLayout
   },
   data () {
@@ -179,8 +169,14 @@ export default defineComponent({
           x:2,
           y:6
         }
-      ]
+      ],
+      margin: [10, 10]
     }
+  },
+  mounted () {
+    setTimeout(() => {
+      this.margin = [20, 20]
+    }, 5000)
   }
 })
 </script>

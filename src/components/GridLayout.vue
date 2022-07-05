@@ -4,30 +4,48 @@
     class="vue-grid-layout"
     :style="mergedStyle"
   >
-    <slot />
-    <!--    <grid-item -->
-    <!--      v-show="isDragging" -->
-    <!--      class="vue-grid-placeholder" -->
-    <!--      :x="placeholder.x" -->
-    <!--      :y="placeholder.y" -->
-    <!--      :w="placeholder.w" -->
-    <!--      :h="placeholder.h" -->
-    <!--      :i="placeholder.i" -->
-    <!--    /> -->
+    <grid-item
+      v-for="item in layout"
+      :key="item.i"
+      class="item"
+      :x="item.x"
+      :y="item.y"
+      :w="item.w"
+      :h="item.h"
+      :i="item.i"
+      :responsive-parent="responsive"
+      :last-breakpoint-parent="lastBreakpoint"
+      :breakpoint-cols-parent="cols"
+      :col-num-parent="colNum"
+      :row-height-parent="rowHeight"
+      :width-parent="width"
+      :margin-parent="margin"
+      :max-rows-parent="maxRows"
+      :is-draggable-parent="isDraggable"
+      :is-resizable-parent="isResizable"
+      :use-css-transforms-parent="useCssTransforms"
+    >
+      <slot :item="item" />
+    </grid-item>
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script lang="ts">
+import GridItem from '@/components/GridItem.vue'
 import elementResizeDetectorMaker from 'element-resize-detector'
+import { Breakpoints, Layout, ResponsiveLayout } from '@/types/helpers'
+import { GridLayoutData, GridLayoutEvent } from '@/types/components'
+import { PropType, defineComponent } from 'vue'
 import { addWindowEventListener, removeWindowEventListener } from '@/helpers/DOM'
 import { bottom, cloneLayout, compact, getAllCollisions, getLayoutItem, moveElement, validateLayout } from '@/helpers/utils'
 import { findOrGenerateResponsiveLayout, getBreakpointFromWidth, getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 
+const layoutItemRequired = { h: 0, i: '-1', w: 0, x: 0, y: 0 }
+
 export default defineComponent({
   name: 'GridLayout',
   components: {
-    // GridItem
+    GridItem
   },
   provide () {
     return {
@@ -35,22 +53,21 @@ export default defineComponent({
     }
   },
   props: {
-    // If true, the container height swells and contracts to fit contents
     autoSize: {
       type: Boolean,
       default: true
     },
-    breakpoints:{
-      type: Object,
-      default () { return { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 } }
+    breakpoints: {
+      type: Object as PropType<Breakpoints>,
+      default: () => ({ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 })
     },
     colNum: {
       type: Number,
       default: 12
     },
-    cols:{
-      type: Object,
-      default () { return { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 } }
+    cols: {
+      type: Object as PropType<Breakpoints>,
+      default: () => ({ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 })
     },
     isDraggable: {
       type: Boolean,
@@ -65,14 +82,12 @@ export default defineComponent({
       default: true
     },
     layout: {
-      type: Array,
+      type: Array as PropType<Layout>,
       required: true
     },
     margin: {
-      type: Array,
-      default () {
-        return [10, 10]
-      }
+      type: Array as PropType<number[]>,
+      default: () => [10, 10]
     },
     maxRows: {
       type: Number,
@@ -87,10 +102,8 @@ export default defineComponent({
       default: false
     },
     responsiveLayouts: {
-      type: Object,
-      default () {
-        return {}
-      }
+      type: Object as PropType<ResponsiveLayout>,
+      default: () => ({})
     },
     rowHeight: {
       type: Number,
@@ -100,88 +113,65 @@ export default defineComponent({
       type: Boolean,
       default: true
     },
-    useStyleCursor: {
-      type: Boolean,
-      default: true
-    },
     verticalCompact: {
       type: Boolean,
       default: true
     }
   },
   emits: ['layout-ready', 'update:layout', 'layout-created', 'layout-before-mount', 'layout-mounted', 'layout-updated', 'breakpoint-changed'],
-  data () {
+  data (): GridLayoutData {
     return {
+      erd: elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }),
       isDragging: false,
-      lastBreakpoint: null, // store last active breakpoint
+      lastBreakpoint: 'lg', // store last active breakpoint
       lastLayoutLength: 0,
       layouts: {}, // array to store all layouts from different breakpoints
       mergedStyle: {},
-      originalLayout: null, // store original Layout
+      originalLayout: this.layout,
       placeholder: {
         h: 0,
-        i: -1,
+        i: '-1',
         w: 0,
         x: 0,
         y: 0
       },
-      width: null
+      width: 0
     }
   },
   watch: {
-    colNum (val) {
-      this.eventBus.emit('set-col-num', val)
+    colNum (value: number) {
+      this.eventBus.emit('set-col-num', value)
     },
-    isDraggable () {
-      this.eventBus.emit('set-draggable', this.isDraggable)
+    isDraggable (value: boolean) {
+      this.eventBus.emit('set-draggable', value)
     },
-    isResizable () {
-      this.eventBus.emit('set-resizable', this.isResizable)
+    isResizable (value: boolean) {
+      this.eventBus.emit('set-resizable', value)
     },
     layout () {
       this.layoutUpdate()
     },
-    margin () {
+    margin (value: [number, number]) {
       this.updateHeight()
+      this.eventBus.emit('changed:parent-margin', value)
     },
-    maxRows () {
-      this.eventBus.emit('set-max-rows', this.maxRows)
+    maxRows (value: number) {
+      this.eventBus.emit('set-max-rows', value)
     },
-    responsive () {
-      if (!this.responsive) {
+    responsive (value: boolean) {
+      if (!value) {
         this.$emit('update:layout', this.originalLayout)
         this.eventBus.emit('set-col-num', this.colNum)
       }
       this.onWindowResize()
     },
-    rowHeight () {
-      this.eventBus.emit('set-row-height', this.rowHeight)
+    rowHeight (value: number) {
+      this.eventBus.emit('set-row-height', value)
     },
-    width (newval, oldval) {
+    width (newValue: number, oldValue: number) {
       this.$nextTick( () => {
-        //this.$broadcast("updateWidth", this.width);
-        this.eventBus.emit('update-width', this.width)
-        if (oldval === null) {
-          /*
-                            If oldval == null is when the width has never been
-                            set before. That only occurs when mouting is
-                            finished, and onWindowResize has been called and
-                            this.width has been changed the first time after it
-                            got set to null in the constructor. It is now time
-                            to issue layout-ready events as the GridItems have
-                            their sizes configured properly.
-
-                            The reason for emitting the layout-ready events on
-                            the next tick is to allow for the newly-emitted
-                            updateWidth event (above) to have reached the
-                            children GridItem-s and had their effect, so we're
-                            sure that they have the final size before we emit
-                            layout-ready (for this GridLayout) and
-                            item-layout-ready (for the GridItem-s).
-
-                            This way any client event handlers can reliably
-                            invistigate stable sizes of GridItem-s.
-                        */
+        this.eventBus.emit('update-width', newValue)
+        if (oldValue === null) {
           this.$nextTick(() => {
             this.$emit('layout-ready', this.layout)
           })
@@ -191,22 +181,15 @@ export default defineComponent({
     }
   },
   created () {
-    // Accessible refernces of functions for removing in beforeDestroy
-    const resizeEventHandler = (eventType, i, x, y, h, w) => {
-      this.resizeEvent(eventType, i, x, y, h, w)
-    }
-
-    this.dragEventHandler = (eventType, i, x, y, h, w) => {
-      this.dragEvent(eventType, i, x, y, h, w)
-    }
     this.eventBus.on('resize-event', this.resizeEvent)
     this.eventBus.on('drag-event', this.dragEvent)
+
     this.$emit('layout-created', this.layout)
   },
   beforeUnmount () {
-    this.eventBus.off('resize-eevent', this.resizeEvent)
-    this.eventBus.off('drag-eevent', this.dragEvent)
-    // this.eventBus.$destroy()
+    this.eventBus.off('resize-event', this.resizeEvent)
+    this.eventBus.off('drag-event', this.dragEvent)
+
     removeWindowEventListener('resize', this.onWindowResize)
     if (this.erd) {
       this.erd.uninstall(this.$refs.item)
@@ -236,10 +219,6 @@ export default defineComponent({
 
         this.updateHeight()
         this.$nextTick( () => {
-          this.erd = elementResizeDetectorMaker({
-            callOnAdd: false,
-            strategy: 'scroll' //<- For ultra performance.
-          })
           this.erd.listenTo(this.$refs.item, () => {
             this.onWindowResize()
           })
@@ -248,21 +227,19 @@ export default defineComponent({
     })
   },
   methods: {
-    containerHeight () {
+    containerHeight (): string | undefined {
       if (!this.autoSize) return
-      // console.log("bottom: " + bottom(this.layout))
-      // console.log("rowHeight + margins: " + (this.rowHeight + this.margin[1]) + this.margin[1])
-      const containerHeight =  `${bottom(this.layout) * (this.rowHeight + this.margin[1]) + this.margin[1]  }px`
 
-      return containerHeight
+      return `${bottom(this.layout) * (this.rowHeight + this.margin[1]) + this.margin[1]}px`
     },
-    dragEvent ([eventName, id, x, y, h, w]) {
+    dragEvent ([eventName, id, x, y, h, w]: GridLayoutEvent): void {
       //console.log(eventName + " id=" + id + ", x=" + x + ", y=" + y);
       let l = getLayoutItem(this.layout, id)
+
       //GetLayoutItem sometimes returns null object
 
-      if (l === undefined || l === null) {
-        l = { x:0, y:0 }
+      if (!l && (l === undefined || l === null)) {
+        l = { ...layoutItemRequired }
       }
 
       if (eventName === 'dragmove' || eventName === 'dragstart') {
@@ -290,7 +267,7 @@ export default defineComponent({
       this.updateHeight()
       if (eventName === 'dragend') this.$emit('layout-updated', this.layout)
     },
-    findDifference (layout, originalLayout) {
+    findDifference (layout: Layout, originalLayout: Layout): Layout {
 
       //Find values that are in result1 but not in result2
       const uniqueResultOne = layout.filter(function (obj) {
@@ -309,19 +286,18 @@ export default defineComponent({
       //Combine the two arrays of unique entries#
       return uniqueResultOne.concat(uniqueResultTwo)
     },
-    initResponsiveFeatures () {
+    initResponsiveFeatures (): void {
       // clear layouts
       this.layouts = Object.assign({}, this.responsiveLayouts)
     },
-    layoutUpdate () {
-      if (this.layout !== undefined && this.originalLayout !== null) {
+    layoutUpdate (): void {
+      if (this.layout && this.originalLayout) {
         if (this.layout.length !== this.originalLayout.length) {
           // console.log("### LAYOUT UPDATE!", this.layout.length, this.originalLayout.length);
 
           const diff = this.findDifference(this.layout, this.originalLayout)
 
           if (diff.length > 0) {
-            // console.log(diff);
             if (this.layout.length > this.originalLayout.length) {
               this.originalLayout = this.originalLayout.concat(diff)
             } else {
@@ -344,18 +320,16 @@ export default defineComponent({
         this.$emit('layout-updated', this.layout)
       }
     },
-    onWindowResize () {
-      if (this.$refs !== null && this.$refs.item !== null && this.$refs.item !== undefined) {
+    onWindowResize (): void {
+      if (this.$refs && this.$refs.item) {
         this.width = this.$refs.item.offsetWidth
       }
-      // this.eventBus.emit('resize-event')
     },
-
-    resizeEvent ([eventName, id, x, y, h, w]) {
+    resizeEvent ([eventName, id, x, y, h, w]: GridLayoutEvent): void {
       let l = getLayoutItem(this.layout, id)
 
-      if (l === undefined || l === null) {
-        l = { h:0, w:0 }
+      if (!l) {
+        l = { ...layoutItemRequired }
       }
 
       let hasCollisions
@@ -375,10 +349,12 @@ export default defineComponent({
 
           collisions.forEach(layoutItem => {
             if (layoutItem.x > l.x) leastX = Math.min(leastX, layoutItem.x)
+
             if (layoutItem.y > l.y) leastY = Math.min(leastY, layoutItem.y)
           })
 
           if (Number.isFinite(leastX)) l.w = leastX - l.x
+
           if (Number.isFinite(leastY)) l.h = leastY - l.y
         }
       }
@@ -395,14 +371,14 @@ export default defineComponent({
         this.placeholder.y = y
         this.placeholder.w = l.w
         this.placeholder.h = l.h
-        this.$nextTick(function () {
+        this.$nextTick(() => {
           this.isDragging = true
         })
         //this.$broadcast("updateWidth", this.width);
         this.eventBus.emit('update-width', this.width)
 
       } else {
-        this.$nextTick(function () {
+        this.$nextTick(() => {
           this.isDragging = false
         })
       }
@@ -415,14 +391,14 @@ export default defineComponent({
 
       if (eventName === 'resizeend') this.$emit('layout-updated', this.layout)
     },
-
-    responsiveGridLayout () {
+    responsiveGridLayout (): void {
       const newBreakpoint = getBreakpointFromWidth(this.breakpoints, this.width)
       const newCols = getColsFromBreakpoint(newBreakpoint, this.cols)
 
       // save actual layout in layouts
-      if (this.lastBreakpoint !== null && !this.layouts[this.lastBreakpoint])
+      if (this.lastBreakpoint && !this.layouts[this.lastBreakpoint]) {
         this.layouts[this.lastBreakpoint] = cloneLayout(this.layout)
+      }
 
       // Find or generate a new layout.
       const layout = findOrGenerateResponsiveLayout(
@@ -444,12 +420,10 @@ export default defineComponent({
 
       // new prop sync
       this.$emit('update:layout', layout)
-
       this.lastBreakpoint = newBreakpoint
       this.eventBus.emit('set-col-num', getColsFromBreakpoint(newBreakpoint, this.cols))
     },
-
-    updateHeight () {
+    updateHeight (): void {
       this.mergedStyle = {
         height: this.containerHeight()
       }

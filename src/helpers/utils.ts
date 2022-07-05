@@ -1,4 +1,4 @@
-import { Layout, LayoutItem, PositionLeft, Transform, setPositionFnc } from '@/types/helpers'
+import { Layout, LayoutItem, Position, Transform, setPositionFnc } from '@/types/helpers'
 
 export const bottom = (layout: Layout): number => {
   let max = 0
@@ -68,7 +68,7 @@ export const compactItem = (compareWith: Layout, l: LayoutItem, verticalCompact:
   return l
 }
 
-export const correctBounds  = (layout: Layout, bounds: {cols: number}): Layout => {
+export const correctBounds  = (layout: Layout, bounds: { cols: number }): Layout => {
   const collidesWith = getStatics(layout)
 
   for (let i = 0, len = layout.length; i < len; i++) {
@@ -103,7 +103,8 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: string): LayoutItem | void => {
+export const getLayoutItem = (layout: Layout, id: string): LayoutItem => {
+  return layout.filter(l => l.i === id)[0]
   for (let i = 0, len = layout.length; i < len; i++) {
     if (layout[i].i === id) return layout[i]
   }
@@ -180,7 +181,7 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
   return moveElement(layout, itemToMove, itemToMove.x, itemToMove.y + 1, preventCollision)
 }
 
-export const setTopLeft: setPositionFnc<PositionLeft> = (top, left, width, height) => ({
+export const setTopLeft: setPositionFnc<Position> = (top, left, width, height) => ({
   height: `${height}px`,
   left: `${left}px`,
   position: 'absolute',
@@ -205,7 +206,7 @@ export const sortLayoutItemsByRowCol = (layout: Layout): Layout => {
   })
 }
 
-export const validateLayout = (layout: Layout, contextName: string): void => {
+export const validateLayout = (layout: Layout, contextName?: string): void => {
   contextName = contextName || 'Layout'
 
   const subProps = ['x', 'y', 'w', 'h']

@@ -1,6 +1,6 @@
 import App from './App.vue'
-import { InjectionKey, createApp } from 'vue'
-import mitt, { Emitter } from 'mitt'
+import { createApp } from 'vue'
+import mitt from 'mitt'
 
 const app = createApp(App)
 
@@ -8,9 +8,7 @@ const app = createApp(App)
 //   name: string
 // }
 
-// export const emitterKey: InjectionKey<Emitter<Events>> = Symbol('eventBus')
 app.config.unwrapInjectedRef = true
 app.config.globalProperties.eventBus = mitt()
-// app.provide(emitterKey, mitt())
 
 app.mount('#app')

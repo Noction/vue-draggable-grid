@@ -22,8 +22,7 @@ module.exports = {
     'vue/component-options-name-casing': 'error',
     // enforce order of component top-level elements
     'vue/component-tags-order': ['error', { order: ['template', 'script[setup]', 'script:not([setup])', 'style:not([scoped])', 'style[scoped]'] }],
-    // enforce specific casing for custom event name
-    'vue/custom-event-name-casing': 'error',
+
     // enforce order of defineEmits and defineProps compiler macros
     'vue/define-macros-order': 'error',
     // enforce consistent newlines before and after dots in <template>

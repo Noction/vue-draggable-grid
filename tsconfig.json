@@ -10,6 +10,7 @@
     "resolveJsonModule": true,
     "outDir": "./dist",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "suppressImplicitAnyIndexErrors": true,
     "lib": ["esnext", "dom"],
     "allowJs": true,
@@ -18,7 +19,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["vitest/globals"]
   },
   "include": [
     "src/**/*.ts",
@@ -27,9 +29,7 @@
     "src/**/*.vue",
     "tests/unit/**/*.spec.ts",
     // js
-    "src/**/*.js",
-    "node_modules/highlight.js/types/index.d.ts",
-    "node_modules/highlight.js/types/index.d.ts"
+    "src/**/*.js"
   ],
   "exclude": ["node_modules"]
 }

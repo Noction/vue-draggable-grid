@@ -1,10 +1,7 @@
 const hasWindow = () => typeof window !== 'undefined'
 
 export const addWindowEventListener = (event:string, callback: () => void) => {
-  if (!hasWindow) {
-    callback()
-    return
-  }
+  if (!hasWindow) return callback()
 
   window.addEventListener(event, callback)
 }
