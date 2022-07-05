@@ -13,17 +13,16 @@
       :w="item.w"
       :h="item.h"
       :i="item.i"
-      :responsive-parent="responsive"
-      :last-breakpoint-parent="lastBreakpoint"
+      :responsive="responsive"
+      :last-breakpoint="lastBreakpoint"
       :breakpoint-cols-parent="cols"
       :col-num-parent="colNum"
-      :row-height-parent="rowHeight"
-      :width-parent="width"
+      :container-width="width"
       :margin-parent="margin"
       :max-rows-parent="maxRows"
-      :is-draggable-parent="isDraggable"
-      :is-resizable-parent="isResizable"
-      :use-css-transforms-parent="useCssTransforms"
+      :is-draggable="isDraggable"
+      :row-height="rowHeight"
+      :is-resizable="isResizable"
     >
       <slot :item="item" />
     </grid-item>

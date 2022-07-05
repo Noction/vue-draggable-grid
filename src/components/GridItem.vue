@@ -41,6 +41,10 @@ export default defineComponent({
       type: Number,
       required: true
     },
+    containerWidth: {
+      type: Number,
+      required: true
+    },
     dragAllowFrom: {
       type: String,
       default: null
@@ -61,19 +65,11 @@ export default defineComponent({
       type: Boolean,
       default: null
     },
-    isDraggableParent: {
-      type: Boolean,
-      default: true
-    },
     isResizable: {
       type: Boolean,
       default: null
     },
-    isResizableParent: {
-      type: Boolean,
-      required: true
-    },
-    lastBreakpointParent: {
+    lastBreakpoint: {
       type: String as PropType<BreakpointsKeys>,
       required: true
     },
@@ -110,11 +106,11 @@ export default defineComponent({
       required: false,
       default: 'a, button'
     },
-    responsiveParent: {
+    responsive: {
       type: Boolean,
       required: true
     },
-    rowHeightParent: {
+    rowHeight: {
       type: Number,
       required: true
     },
@@ -123,15 +119,7 @@ export default defineComponent({
       required: false,
       default: false
     },
-    useCssTransformsParent: {
-      type: Boolean,
-      required: true
-    },
     w: {
-      type: Number,
-      required: true
-    },
-    widthParent: {
       type: Number,
       required: true
     },
@@ -148,7 +136,6 @@ export default defineComponent({
   data (): GridItemData {
     return {
       cols: 1,
-      containerWidth: 100,
       dragEventSet: false,
       draggable: false,
       dragging: null,
@@ -172,7 +159,6 @@ export default defineComponent({
       resizable: this.isResizable,
       resizeEventSet: false,
       resizing: null,
-      rowHeight: 30,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       style: {},
@@ -274,7 +260,6 @@ export default defineComponent({
     this.eventBus.on('compact', this.createStyle)
     this.eventBus.on('set-draggable', this.setDraggableHandler)
     this.eventBus.on('set-resizable', this.setResizableHandler)
-    this.eventBus.on('set-rowHeight', this.setRowHeightHandler)
     this.eventBus.on('set-max-rows', this.setMaxRowsHandler)
     this.eventBus.on('directionchange', this.createStyle)
     this.eventBus.on('set-col-num', this.setColNum)
@@ -296,7 +281,6 @@ export default defineComponent({
     this.eventBus.off('compact', this.createStyle)
     this.eventBus.off('set-draggable', this.setDraggableHandler)
     this.eventBus.off('set-resizable', this.setResizableHandler)
-    this.eventBus.off('set-row-height', this.setRowHeightHandler)
     this.eventBus.off('set-max-rows', this.setMaxRowsHandler)
     this.eventBus.off('directionchange', this.createStyle)
     this.eventBus.off('set-col-num', this.setColNum)
@@ -306,14 +290,12 @@ export default defineComponent({
     }
   },
   mounted () {
-    if (this.responsiveParent && this.lastBreakpointParent) {
-      this.cols = getColsFromBreakpoint(this.lastBreakpointParent, this.breakpointColsParent)
+    if (this.responsive && this.lastBreakpoint) {
+      this.cols = getColsFromBreakpoint(this.lastBreakpoint, this.breakpointColsParent)
     } else {
       this.cols = this.colNumParent
     }
 
-    this.rowHeight = this.rowHeightParent
-    this.containerWidth = this.widthParent ? this.widthParent : 100
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.margin = this.marginParent ? this.marginParent : [10, 10]
@@ -321,7 +303,6 @@ export default defineComponent({
 
     this.draggable = this.isDraggable
     this.resizable = this.isResizable
-    this.useCssTransforms = this.useCssTransformsParent
     // this.useStyleCursor = this.layout.useStyleCursor
     this.createStyle()
   },
@@ -647,9 +628,6 @@ export default defineComponent({
         this.resizable = isResizable
       }
     },
-    setRowHeightHandler (rowHeight: number) {
-      this.rowHeight = rowHeight
-    },
     tryMakeDraggable () {
       if (this.interactObj === null || this.interactObj === undefined) {
         this.interactObj = interact(this.$refs.item)
@@ -750,7 +728,6 @@ export default defineComponent({
       }
     },
     updateWidth (width: number, colNum: number) {
-      this.containerWidth = width
       if (colNum !== undefined && colNum !== null) {
         this.cols = colNum
       }

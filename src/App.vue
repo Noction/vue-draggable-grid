@@ -2,7 +2,7 @@
   <grid-layout
     v-model:layout="layout"
     :col-num="12"
-    :row-height="30"
+    :row-height="rowHeight"
     :margin="margin"
     :is-mirrored="false"
     is-draggable
@@ -170,12 +170,13 @@ export default defineComponent({
           y:6
         }
       ],
-      margin: [10, 10]
+      margin: [10, 10],
+      rowHeight: 30
     }
   },
   mounted () {
     setTimeout(() => {
-      this.margin = [20, 20]
+      this.rowHeight = 50
     }, 5000)
   }
 })
