@@ -1,7 +1,7 @@
 <template>
   <grid-layout
     v-model:layout="layout"
-    :col-num="12"
+    :col-num="colNum"
     :row-height="rowHeight"
     :margin="margin"
     :is-mirrored="false"
@@ -28,6 +28,7 @@ export default defineComponent({
   },
   data () {
     return {
+      colNum: 12,
       layout: [
         {
           h:2,
@@ -176,7 +177,7 @@ export default defineComponent({
   },
   mounted () {
     setTimeout(() => {
-      this.rowHeight = 50
+      // this.rowHeight = 50
     }, 5000)
   }
 })

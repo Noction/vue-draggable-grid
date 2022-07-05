@@ -5,6 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "strict": true,
+    "skipDefaultLibCheck": true,
     "jsx": "preserve",
     "sourceMap": true,
     "resolveJsonModule": true,

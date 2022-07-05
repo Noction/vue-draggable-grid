@@ -2,36 +2,23 @@ import { Interactable } from '@interactjs/core/Interactable'
 import elementResizeDetectorMaker from 'element-resize-detector'
 import { BreakpointsKeys, Layout, LayoutItemRequired, Position, ResponsiveLayout, Transform } from '@/types/helpers'
 
+type InnerKeys = 'h' | 'w' | 'x' | 'y'
+
+type Inner<Type> = Record<InnerKeys, Type>
+
 export interface GridItemData {
   cols: number
-  containerWidth: number
   dragEventSet: boolean
-  draggable: boolean
   dragging: { left: number; top: number } | null
-  innerH: number
-  innerW: number
-  innerX: number
-  innerY: number
+  inner: Inner<number>
+  interactObj: Interactable | null
   isDragging: boolean
   isResizing: boolean
-  lastH: number
-  lastW: number
-  lastX: number
-  lastY: number
-  interactObj: Interactable | null
-  margin: [number, number]
-  maxRows: number
-  previousH: null
-  previousW: null
-  previousX: null
-  previousY: null
-  resizable: boolean
+  lastInner: Inner<number>
+  previousInner: Inner<number>
   resizeEventSet: boolean
   resizing: { height: number; width: number } | null
-  rowHeight: number
-  style: Position | Transform
-  useCssTransforms: boolean
-  useStyleCursor: boolean
+  style: Position | Transform | object
 }
 
 export interface GridLayoutData {

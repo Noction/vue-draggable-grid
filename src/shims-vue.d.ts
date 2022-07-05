@@ -1,5 +1,6 @@
 /* eslint-disable */
 import {Emitter} from "mitt";
+import { GridLayoutEvent } from "@/types/components";
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
@@ -16,6 +17,11 @@ declare module 'vue' {
     $refs: {
       [key: string]: HTMLElement
     }
-    eventBus: Emitter<Record<string, any>>
+    eventBus: Emitter<{
+      'drag-event': GridLayoutEvent
+      'resize-event': GridLayoutEvent
+      'recalculate-styles': void
+      'set-col-num': number
+    }>
   }
 }

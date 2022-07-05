@@ -1,13 +1,13 @@
 type RecordBreakpoint<Type> = Partial<Record<BreakpointsKeys, Type>>
 
-interface HW {
-  height: string
-  width: string
-}
-
 export type Breakpoints = RecordBreakpoint<number>
 
 export type BreakpointsKeys = 'lg' | 'md' | 'sm' | 'xs' | 'xxs'
+
+export interface HW {
+  height: string
+  width: string
+}
 
 export type Layout = LayoutItem[]
 

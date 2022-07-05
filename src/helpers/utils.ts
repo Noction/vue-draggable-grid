@@ -49,6 +49,7 @@ export const compact = (layout: Layout, verticalCompact: boolean): Layout => {
 
     l.moved = false
   }
+
   return out
 }
 
@@ -103,12 +104,7 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: string): LayoutItem => {
-  return layout.filter(l => l.i === id)[0]
-  for (let i = 0, len = layout.length; i < len; i++) {
-    if (layout[i].i === id) return layout[i]
-  }
-}
+export const getLayoutItem = (layout: Layout, id: string): LayoutItem => layout.filter(l => l.i === id)[0]
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
 
@@ -123,8 +119,8 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
   const oldY = l.y
   const movingUp = y && l.y > y
 
-  if (typeof x === 'number') l.x = x
-  if (typeof y === 'number') l.y = y
+  l.x = x
+  l.y = y
 
   l.moved = true
 
@@ -204,6 +200,10 @@ export const sortLayoutItemsByRowCol = (layout: Layout): Layout => {
 
     return -1
   })
+}
+
+export const stringReplacer = (string: string, value: string, replacer: string): string => {
+  return string.trim().replace(value, replacer)
 }
 
 export const validateLayout = (layout: Layout, contextName?: string): void => {

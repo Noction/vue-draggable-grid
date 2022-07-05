@@ -8,9 +8,8 @@
     <slot />
     <span
       v-if="resizableAndNotStatic"
-      :class="resizableHandleClass"
+      :class="$options.resizableHandleClass"
     />
-    <!-- <span v-if="draggable" ref="dragHandle" class="vue-draggable-handle"></span> -->
   </div>
 </template>
 
@@ -24,20 +23,20 @@ import '@interactjs/dev-tools'
 import { GridItemData } from '@/types/components'
 import { getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 import interact from '@interactjs/interact'
-import { Breakpoints, BreakpointsKeys, Layout } from '@/types/helpers'
-import { PropType, defineComponent, toRef } from 'vue'
+import { Breakpoints, BreakpointsKeys, Position, Transform } from '@/types/helpers'
+import { PropType, defineComponent } from 'vue'
 import { createCoreData, getControlPosition } from '@/helpers/draggableUtils'
-import { setTopLeft, setTransform } from '@/helpers/utils'
+import { setTopLeft, setTransform, stringReplacer } from '@/helpers/utils'
 
 export default defineComponent({
   name: 'GridItem',
-  inject: ['layout'],
+  resizableHandleClass: 'vue-resizable-handle',
   props: {
-    breakpointColsParent: {
+    breakpointCols: {
       type: Object as PropType<Breakpoints>,
       required: true
     },
-    colNumParent: {
+    colNum: {
       type: Number,
       required: true
     },
@@ -59,29 +58,30 @@ export default defineComponent({
       required: true
     },
     i: {
+      type: String,
       required: true
     },
     isDraggable: {
       type: Boolean,
-      default: null
+      default: false
     },
     isResizable: {
       type: Boolean,
-      default: null
+      default: true
     },
     lastBreakpoint: {
       type: String as PropType<BreakpointsKeys>,
       required: true
     },
-    marginParent: {
+    margin: {
       type: Array as PropType<number[]>,
-      required: true
+      default: () => [10, 10]
     },
     maxH: {
       type: Number,
       default: Infinity
     },
-    maxRowsParent: {
+    maxRows: {
       type: Number,
       required: true
     },
@@ -97,18 +97,10 @@ export default defineComponent({
       type: Number,
       default: 1
     },
-    preserveAspectRatio: {
-      type: Boolean,
-      default: false
-    },
     resizeIgnoreFrom: {
       type: String,
       required: false,
       default: 'a, button'
-    },
-    responsive: {
-      type: Boolean,
-      required: true
     },
     rowHeight: {
       type: Number,
@@ -116,8 +108,11 @@ export default defineComponent({
     },
     static: {
       type: Boolean,
-      required: false,
       default: false
+    },
+    useCssTransforms: {
+      type: Boolean,
+      default: true
     },
     w: {
       type: Number,
@@ -135,42 +130,25 @@ export default defineComponent({
   emits: ['container-resized', 'resize', 'resized', 'move', 'moved'],
   data (): GridItemData {
     return {
-      cols: 1,
+      cols: this.colNum,
       dragEventSet: false,
-      draggable: false,
       dragging: null,
-      innerH: this.h,
-      innerW: this.w,
-      innerX: this.x,
-      innerY: this.y,
+      inner: { h: this.h, w: this.w, x: this.x, y: this.y },
       interactObj: null,
       isDragging: false,
       isResizing: false,
-      lastH: NaN,
-      lastW: NaN,
-      lastX: NaN,
-      lastY: NaN,
-      margin: [10, 10],
-      maxRows: Infinity,
-      previousH: null,
-      previousW: null,
-      previousX: null,
-      previousY: null,
-      resizable: this.isResizable,
+      lastInner: { h: NaN, w: NaN, x: NaN, y: NaN },
+      previousInner: { h: NaN, w: NaN, x: NaN, y: NaN },
       resizeEventSet: false,
       resizing: null,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      style: {},
-      useCssTransforms: true,
-      useStyleCursor: true
+      style: {}
     }
   },
   computed: {
     classObj () {
       return {
-        cssTransforms : this.useCssTransforms,
-        'disable-userselect': this.isDragging,
+        'css-transforms' : this.useCssTransforms,
+        'disable-user-select': this.isDragging,
         'no-touch': this.isAndroid && this.draggableOrResizableAndNotStatic,
         resizing : this.isResizing,
         static: this.static,
@@ -179,16 +157,13 @@ export default defineComponent({
       }
     },
     draggableOrResizableAndNotStatic () {
-      return (this.draggable || this.resizable) && !this.static
+      return (this.isDraggable || this.isResizable) && !this.static
     },
     isAndroid () {
       return navigator.userAgent.toLowerCase().indexOf('android') !== -1
     },
     resizableAndNotStatic () {
-      return this.resizable && !this.static
-    },
-    resizableHandleClass () {
-      return 'vue-resizable-handle'
+      return this.isResizable && !this.static
     }
   },
   watch: {
@@ -202,19 +177,16 @@ export default defineComponent({
       this.createStyle()
       this.emitContainerResized()
     },
-    draggable () {
-      this.tryMakeDraggable()
-    },
     h (newVal) {
-      this.innerH = newVal
+      this.inner.h = newVal
       this.createStyle()
       // this.emitContainerResized();
     },
     isDraggable () {
-      this.draggable = this.isDraggable
+      this.tryMakeDraggable()
     },
     isResizable () {
-      this.resizable = this.isResizable
+      this.tryMakeResizable()
     },
     maxH () {
       this.tryMakeResizable()
@@ -228,9 +200,6 @@ export default defineComponent({
     minW () {
       this.tryMakeResizable()
     },
-    resizable () {
-      this.tryMakeResizable()
-    },
     rowHeight () {
       this.createStyle()
       this.emitContainerResized()
@@ -240,49 +209,25 @@ export default defineComponent({
       this.tryMakeResizable()
     },
     w (newVal) {
-      this.innerW = newVal
+      this.inner.w = newVal
       this.createStyle()
       // this.emitContainerResized();
     },
     x (newVal) {
-      this.innerX = newVal
+      this.inner.x = newVal
       this.createStyle()
     },
     y (newVal) {
-      this.innerY = newVal
+      this.inner.y = newVal
       this.createStyle()
     }
   },
   created () {
-    // Accessible refernces of functions for removing in beforeDestroy
-
-    this.eventBus.on('update-width', this.updateWidthHandler)
-    this.eventBus.on('compact', this.createStyle)
-    this.eventBus.on('set-draggable', this.setDraggableHandler)
-    this.eventBus.on('set-resizable', this.setResizableHandler)
-    this.eventBus.on('set-max-rows', this.setMaxRowsHandler)
-    this.eventBus.on('directionchange', this.createStyle)
+    this.eventBus.on('recalculate-styles', this.createStyle)
     this.eventBus.on('set-col-num', this.setColNum)
-    this.eventBus.on('changed:parent-margin', (margin: [number, number]) => {
-      const [dataMargin1, dataMargin2] = this.margin
-      const [parentMargin1, parentMargin2] = margin
-
-      if (!margin || (parentMargin1 === dataMargin1 && parentMargin2 === dataMargin2)) {
-        return
-      }
-
-      this.margin = [parentMargin1, parentMargin2]
-      this.createStyle()
-      this.emitContainerResized()
-    })
   },
   beforeUnmount () {
-    this.eventBus.off('update-width', this.updateWidthHandler)
-    this.eventBus.off('compact', this.createStyle)
-    this.eventBus.off('set-draggable', this.setDraggableHandler)
-    this.eventBus.off('set-resizable', this.setResizableHandler)
-    this.eventBus.off('set-max-rows', this.setMaxRowsHandler)
-    this.eventBus.off('directionchange', this.createStyle)
+    this.eventBus.off('recalculate-styles', this.createStyle)
     this.eventBus.off('set-col-num', this.setColNum)
 
     if (this.interactObj) {
@@ -290,20 +235,9 @@ export default defineComponent({
     }
   },
   mounted () {
-    if (this.responsive && this.lastBreakpoint) {
-      this.cols = getColsFromBreakpoint(this.lastBreakpoint, this.breakpointColsParent)
-    } else {
-      this.cols = this.colNumParent
-    }
+    this.cols = getColsFromBreakpoint(this.lastBreakpoint, this.breakpointCols)
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    this.margin = this.marginParent ? this.marginParent : [10, 10]
-    this.maxRows = this.maxRowsParent
-
-    this.draggable = this.isDraggable
-    this.resizable = this.isResizable
-    // this.useStyleCursor = this.layout.useStyleCursor
+    this.tryMakeDraggable()
     this.createStyle()
   },
   methods: {
@@ -311,10 +245,10 @@ export default defineComponent({
       // ok here we want to calculate if a resize is needed
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.previousW = this.innerW
+      this.previousInner.w = this.inner.w
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.previousH = this.innerH
+      this.previousInner.h = this.inner.h
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -342,75 +276,67 @@ export default defineComponent({
         pos.w = 1
       }
 
-      // this.lastW = x; // basically, this is copied from resizehandler, but shouldn't be needed
-      // this.lastH = y;
+      // this.lastInner.x = x; // basically, this is copied from resizehandler, but shouldn't be needed
+      // this.lastInner.h = y;
 
-      if (this.innerW !== pos.w || this.innerH !== pos.h) {
+      if (this.inner.w !== pos.w || this.inner.h !== pos.h) {
         this.$emit('resize', this.i, pos.h, pos.w, newSize.height, newSize.width)
       }
-      if (this.previousW !== pos.w || this.previousH !== pos.h) {
+      if (this.previousInner.w !== pos.w || this.previousInner.h !== pos.h) {
         this.$emit('resized', this.i, pos.h, pos.w, newSize.height, newSize.width)
-        this.eventBus.emit('resize-event', ['resizeend', this.i, this.innerX, this.innerY, pos.h, pos.w])
+        this.eventBus.emit('resize-event', ['resizeend', this.i, this.inner.x, this.inner.y, pos.h, pos.w])
       }
     },
     calcColWidth () {
-      const colWidth = (this.containerWidth - (this.margin[0] * (this.cols + 1))) / this.cols
-      // console.log("### COLS=" + this.cols + " COL WIDTH=" + colWidth + " MARGIN " + this.margin[0]);
+      const [m1] = this.margin
 
-      return colWidth
+      return (this.containerWidth - (m1 * (this.cols + 1))) / this.cols
     },
     calcPosition (x: number, y: number, w: number, h: number) {
       const colWidth = this.calcColWidth()
+      const [m1, m2] = this.margin
 
       return {
-        height: h === Infinity ? h : Math.round(this.rowHeight * h + Math.max(0, h - 1) * this.margin[1]),
-        left: Math.round(colWidth * x + (x + 1) * this.margin[0]),
-        top: Math.round(this.rowHeight * y + (y + 1) * this.margin[1]),
-        width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * this.margin[0])
+        height: h === Infinity ? h : Math.round(this.rowHeight * h + Math.max(0, h - 1) * m2),
+        left: Math.round(colWidth * x + (x + 1) * m2),
+        top: Math.round(this.rowHeight * y + (y + 1) * m2),
+        width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * m1)
       }
     },
     calcWH (height: number, width: number) {
       const colWidth = this.calcColWidth()
+      const [m1, m2] = this.margin
 
-      // width = colWidth * w - (margin * (w - 1))
-      // ...
-      // w = (width + margin) / (colWidth + margin)
-      let w = Math.round((width + this.margin[0]) / (colWidth + this.margin[0]))
-      let h = Math.round((height + this.margin[1]) / (this.rowHeight + this.margin[1]))
+      let w = Math.round((width + m1) / (colWidth + m1))
+      let h = Math.round((height + m2) / (this.rowHeight + m2))
 
       // Capping
-      w = Math.max(Math.min(w, this.cols - this.innerX), 0)
-      h = Math.max(Math.min(h, this.maxRows - this.innerY), 0)
+      w = Math.max(Math.min(w, this.cols - this.inner.x), 0)
+      h = Math.max(Math.min(h, this.maxRows - this.inner.y), 0)
       return { h, w }
     },
     calcXY (top: number, left: number) {
       const colWidth = this.calcColWidth()
+      const [m1, m2] = this.margin
 
-      // left = colWidth * x + margin * (x + 1)
-      // l = cx + m(x+1)
-      // l = cx + mx + m
-      // l - m = cx + mx
-      // l - m = x(c + m)
-      // (l - m) / (c + m) = x
-      // x = (left - margin) / (coldWidth + margin)
-      let x = Math.round((left - this.margin[0]) / (colWidth + this.margin[0]))
-      let y = Math.round((top - this.margin[1]) / (this.rowHeight + this.margin[1]))
+      let x = Math.round((left - m1) / (colWidth + m1))
+      let y = Math.round((top - m2) / (this.rowHeight + m2))
 
       // Capping
-      x = Math.max(Math.min(x, this.cols - this.innerW), 0)
-      y = Math.max(Math.min(y, this.maxRows - this.innerH), 0)
+      x = Math.max(Math.min(x, this.cols - this.inner.w), 0)
+      y = Math.max(Math.min(y, this.maxRows - this.inner.h), 0)
 
       return { x, y }
     },
-    createStyle () {
+    createStyle (): void {
       if (this.x + this.w > this.cols) {
-        this.innerX = 0
-        this.innerW = (this.w > this.cols) ? this.cols : this.w
+        this.inner.x = 0
+        this.inner.w = (this.w > this.cols) ? this.cols : this.w
       } else {
-        this.innerX = this.x
-        this.innerW = this.w
+        this.inner.x = this.x
+        this.inner.w = this.w
       }
-      const pos = this.calcPosition(this.innerX, this.innerY, this.innerW, this.innerH)
+      const pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
 
       if (this.isDragging) {
         pos.top = this.dragging?.top ?? 0
@@ -422,17 +348,9 @@ export default defineComponent({
         pos.height = this.resizing?.height ?? 0
       }
 
-      let style
-      // CSS Transforms support (default)
-
-      if (this.useCssTransforms) {
-        style = setTransform(pos.top, pos.left, pos.width, pos.height)
-
-      } else { // top,left (slow)
-        style = setTopLeft(pos.top, pos.left, pos.width, pos.height)
-      }
-
-      this.style = style
+      this.style = this.useCssTransforms
+        ? setTransform(pos.top, pos.left, pos.width, pos.height)
+        : setTopLeft(pos.top, pos.left, pos.width, pos.height)
     },
     emitContainerResized () {
       // this.style has width and height with trailing 'px'. The
@@ -457,7 +375,7 @@ export default defineComponent({
       const position = getControlPosition(event)
 
       // Get the current drag point from the event. This is used as the offset.
-      if (position === null) return // not possible but satisfies flow
+      if (!position) return // not possible but satisfies flow
       const { x, y } = position
 
       // let shouldUpdate = false;
@@ -467,10 +385,10 @@ export default defineComponent({
         case 'dragstart': {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          this.previousX = this.innerX
+          this.previousInner.x = this.inner.x
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          this.previousY = this.innerY
+          this.previousInner.y = this.inner.y
 
           const parentRect = event.target.offsetParent.getBoundingClientRect()
           const clientRect = event.target.getBoundingClientRect()
@@ -496,7 +414,7 @@ export default defineComponent({
           break
         }
         case 'dragmove': {
-          const coreEvent = createCoreData(this.lastX, this.lastY, x, y)
+          const coreEvent = createCoreData(this.lastInner.x, this.lastInner.y, x, y)
 
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -513,24 +431,23 @@ export default defineComponent({
       // Get new XY
       const pos = this.calcXY(newPosition.top, newPosition.left)
 
-      this.lastX = x
-      this.lastY = y
+      this.lastInner.x = x
+      this.lastInner.y = y
 
-      if (this.innerX !== pos.x || this.innerY !== pos.y) {
+      if (this.inner.x !== pos.x || this.inner.y !== pos.y) {
         this.$emit('move', this.i, pos.x, pos.y)
       }
-      if (event.type === 'dragend' && (this.previousX !== this.innerX || this.previousY !== this.innerY)) {
+      if (event.type === 'dragend' && (this.previousInner.x !== this.inner.x || this.previousInner.y !== this.inner.y)) {
         this.$emit('moved', this.i, pos.x, pos.y)
       }
 
-      this.eventBus.emit('drag-event', [event.type, this.i, pos.x, pos.y, this.innerH, this.innerW])
+      this.eventBus.emit('drag-event', [event.type, this.i, pos.x, pos.y, this.inner.h, this.inner.w])
     },
     handleResize (event: any) {
       if (this.static) return
       const position = getControlPosition(event)
-      // Get the current drag point from the event. This is used as the offset.
 
-      if (position === null) return // not possible but satisfies flow
+      if (!position) return
       const { x, y } = position
 
       const newSize = { height: 0, width: 0 }
@@ -540,20 +457,22 @@ export default defineComponent({
         case 'resizestart': {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          this.previousW = this.innerW
+          this.previousInner.w = this.inner.w
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          this.previousH = this.innerH
-          pos = this.calcPosition(this.innerX, this.innerY, this.innerW, this.innerH)
+          this.previousInner.h = this.inner.h
+          pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
           newSize.width = pos.width
           newSize.height = pos.height
+
           this.resizing = newSize
+
           this.isResizing = true
           break
         }
         case 'resizemove': {
-          //                        console.log("### resize => " + event.type + ", lastW=" + this.lastW + ", lastH=" + this.lastH);
-          const coreEvent = createCoreData(this.lastW, this.lastH, x, y)
+          //                        console.log("### resize => " + event.type + ", lastInner.x=" + this.lastInner.x + ", lastInner.h=" + this.lastInner.h);
+          const coreEvent = createCoreData(this.lastInner.x, this.lastInner.h, x, y)
 
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -567,8 +486,8 @@ export default defineComponent({
           break
         }
         case 'resizeend': {
-          //console.log("### resize end => x=" +this.innerX + " y=" + this.innerY + " w=" + this.innerW + " h=" + this.innerH);
-          pos = this.calcPosition(this.innerX, this.innerY, this.innerW, this.innerH)
+          //console.log("### resize end => x=" +this.inner.x + " y=" + this.inner.y + " w=" + this.inner.w + " h=" + this.inner.h);
+          pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
           newSize.width = pos.width
           newSize.height = pos.height
           //                        console.log("### resize end => " + JSON.stringify(newSize));
@@ -600,52 +519,29 @@ export default defineComponent({
         pos.w = 1
       }
 
-      this.lastW = x
-      this.lastH = y
+      this.lastInner.x = x
+      this.lastInner.h = y
 
-      if (this.innerW !== pos.w || this.innerH !== pos.h) {
+      if (this.inner.w !== pos.w || this.inner.h !== pos.h) {
         this.$emit('resize', this.i, pos.h, pos.w, newSize.height, newSize.width)
       }
-      if (event.type === 'resizeend' && (this.previousW !== this.innerW || this.previousH !== this.innerH)) {
+      if (event.type === 'resizeend' && (this.previousInner.w !== this.inner.w || this.previousInner.h !== this.inner.h)) {
         this.$emit('resized', this.i, pos.h, pos.w, newSize.height, newSize.width)
       }
 
-      this.eventBus.emit('resize-event', [event.type, this.i, this.innerX, this.innerY, pos.h, pos.w])
+      this.eventBus.emit('resize-event', [event.type, this.i, this.inner.x, this.inner.y, pos.h, pos.w])
     },
     setColNum (colNum: number) {
       this.cols = colNum
     },
-    setDraggableHandler (isDraggable: boolean) {
-      if (this.isDraggable === null) {
-        this.draggable = isDraggable
-      }
-    },
-    setMaxRowsHandler (maxRows: number) {
-      this.maxRows = maxRows
-    },
-    setResizableHandler (isResizable: boolean) {
-      if (this.isResizable === null) {
-        this.resizable = isResizable
-      }
-    },
     tryMakeDraggable () {
-      if (this.interactObj === null || this.interactObj === undefined) {
+      if (!this.interactObj) {
         this.interactObj = interact(this.$refs.item)
-        if (!this.useStyleCursor) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          this.interactObj.styleCursor(false)
-        }
       }
-      if (this.draggable && !this.static) {
-        const opts = {
-          allowFrom: this.dragAllowFrom,
-          ignoreFrom: this.dragIgnoreFrom
-        }
-
+      if (this.isDraggable && !this.static) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        this.interactObj.draggable(opts)
+        this.interactObj.draggable({ allowFrom: this.dragAllowFrom, ignoreFrom: this.dragIgnoreFrom })
         /*this.interactObj.draggable({allowFrom: '.vue-draggable-handle'});*/
         if (!this.dragEventSet) {
           this.dragEventSet = true
@@ -656,33 +552,25 @@ export default defineComponent({
       } else {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        this.interactObj.draggable({
-          enabled: false
-        })
+        this.interactObj.draggable({ enabled: false })
       }
     },
     tryMakeResizable () {
-      if (this.interactObj === null || this.interactObj === undefined) {
+      if (!this.interactObj) {
         this.interactObj = interact(this.$refs.item)
-        if (!this.useStyleCursor) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          this.interactObj.styleCursor(false)
-        }
       }
-      if (this.resizable && !this.static) {
+
+      if (this.isResizable && !this.static) {
         const maximum = this.calcPosition(0, 0, this.maxW, this.maxH)
         const minimum = this.calcPosition(0, 0, this.minW, this.minH)
 
-        // console.log("### MAX " + JSON.stringify(maximum));
-        // console.log("### MIN " + JSON.stringify(minimum));
+        const { resizableHandleClass } = this.$options
 
         const opts = {
-          // allowFrom: "." + this.resizableHandleClass.trim().replace(" ", "."),
           edges: {
-            bottom: `.${  this.resizableHandleClass.trim().replace(' ', '.')}`,
+            bottom: stringReplacer(resizableHandleClass, ' ', '.'),
             left: false,
-            right: `.${  this.resizableHandleClass.trim().replace(' ', '.')}`,
+            right: stringReplacer(resizableHandleClass, ' ', '.'),
             top: false
           },
           ignoreFrom: this.resizeIgnoreFrom,
@@ -698,42 +586,20 @@ export default defineComponent({
           }
         }
 
-        if (this.preserveAspectRatio) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          opts.modifiers = [
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            interact.modifiers.aspectRatio({
-              ratio: 'preserve'
-            })
-          ]
-        }
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.interactObj.resizable(opts)
         if (!this.resizeEventSet) {
           this.resizeEventSet = true
-          this.interactObj
-            .on('resizestart resizemove resizeend', event => {
-              this.handleResize(event)
-            })
+          this.interactObj.on('resizestart resizemove resizeend', event => {
+            this.handleResize(event)
+          })
         }
       } else {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        this.interactObj.resizable({
-          enabled: false
-        })
+        this.interactObj.resizable({ enabled: false })
       }
-    },
-    updateWidth (width: number, colNum: number) {
-      if (colNum !== undefined && colNum !== null) {
-        this.cols = colNum
-      }
-    },
-    updateWidthHandler (width: number) {
-      this.updateWidth(width, this.colNumParent)
     }
   }
 })
@@ -753,7 +619,7 @@ export default defineComponent({
         touch-action: none;
     }
 
-    .vue-grid-item.cssTransforms {
+    .vue-grid-item.css-transforms {
         transition-property: transform;
         left: 0;
         right: auto;
@@ -796,7 +662,7 @@ export default defineComponent({
         cursor: se-resize;
     }
 
-    .vue-grid-item.disable-userselect {
+    .vue-grid-item.disable-user-select {
         user-select: none;
     }
 </style>
