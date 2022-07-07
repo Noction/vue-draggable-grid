@@ -197,17 +197,14 @@ export default defineComponent({
 
       this.$nextTick( () => {
         this.onWindowResize()
-
         this.initResponsiveFeatures()
 
-        //self.width = self.$el.offsetWidth;
         addWindowEventListener('resize', this.onWindowResize.bind(this))
-
         compact(this.layout, this.verticalCompact)
 
         this.$emit('update:layout', this.layout)
-
         this.updateHeight()
+
         this.$nextTick( () => {
           this.erd.listenTo(this.$refs.item, () => {
             this.onWindowResize()

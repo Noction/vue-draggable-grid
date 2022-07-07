@@ -20,10 +20,10 @@ import '@interactjs/actions/resize'
 import '@interactjs/modifiers'
 import '@interactjs/dev-tools'
 
-import { GridItemData } from '@/types/components'
 import { getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 import interact from '@interactjs/interact'
-import { Breakpoints, BreakpointsKeys, Position, Transform } from '@/types/helpers'
+import { Breakpoints, BreakpointsKeys } from '@/types/helpers'
+import { GridItemClasses, GridItemData, GridItemPosition } from '@/types/components'
 import { PropType, defineComponent } from 'vue'
 import { createCoreData, getControlPosition } from '@/helpers/draggableUtils'
 import { setTopLeft, setTransform, stringReplacer } from '@/helpers/utils'
@@ -145,24 +145,24 @@ export default defineComponent({
     }
   },
   computed: {
-    classObj () {
+    classObj (): GridItemClasses {
       return {
-        'css-transforms' : this.useCssTransforms,
+        'css-transforms': this.useCssTransforms,
         'disable-user-select': this.isDragging,
-        'no-touch': this.isAndroid && this.draggableOrResizableAndNotStatic,
-        resizing : this.isResizing,
+        'no-touch': this.isNoTouch,
+        resizing: this.isResizing,
         static: this.static,
-        'vue-draggable-dragging' : this.isDragging,
-        'vue-resizable' : this.resizableAndNotStatic
+        'vue-draggable-dragging': this.isDragging,
+        'vue-resizable': this.resizableAndNotStatic
       }
     },
-    draggableOrResizableAndNotStatic () {
-      return (this.isDraggable || this.isResizable) && !this.static
+    isNoTouch (): boolean {
+      const draggableOrResizableAndNotStatic = (this.isDraggable || this.isResizable) && !this.static
+      const isAndroid = navigator.userAgent.toLowerCase().indexOf('android') !== -1
+
+      return draggableOrResizableAndNotStatic && isAndroid
     },
-    isAndroid () {
-      return navigator.userAgent.toLowerCase().indexOf('android') !== -1
-    },
-    resizableAndNotStatic () {
+    resizableAndNotStatic (): boolean {
       return this.isResizable && !this.static
     }
   },
@@ -211,7 +211,6 @@ export default defineComponent({
     w (newVal) {
       this.inner.w = newVal
       this.createStyle()
-      // this.emitContainerResized();
     },
     x (newVal) {
       this.inner.x = newVal
@@ -238,61 +237,16 @@ export default defineComponent({
     this.cols = getColsFromBreakpoint(this.lastBreakpoint, this.breakpointCols)
 
     this.tryMakeDraggable()
+    this.tryMakeResizable()
     this.createStyle()
   },
   methods: {
-    autoSize () {
-      // ok here we want to calculate if a resize is needed
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this.previousInner.w = this.inner.w
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this.previousInner.h = this.inner.h
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      // eslint-disable-next-line vue/require-slots-as-functions
-      const newSize = this.$slots.default[0].elm.getBoundingClientRect()
-      const pos = this.calcWH(newSize.height, newSize.width)
-
-      if (pos.w < this.minW) {
-        pos.w = this.minW
-      }
-      if (pos.w > this.maxW) {
-        pos.w = this.maxW
-      }
-      if (pos.h < this.minH) {
-        pos.h = this.minH
-      }
-      if (pos.h > this.maxH) {
-        pos.h = this.maxH
-      }
-
-      if (pos.h < 1) {
-        pos.h = 1
-      }
-      if (pos.w < 1) {
-        pos.w = 1
-      }
-
-      // this.lastInner.x = x; // basically, this is copied from resizehandler, but shouldn't be needed
-      // this.lastInner.h = y;
-
-      if (this.inner.w !== pos.w || this.inner.h !== pos.h) {
-        this.$emit('resize', this.i, pos.h, pos.w, newSize.height, newSize.width)
-      }
-      if (this.previousInner.w !== pos.w || this.previousInner.h !== pos.h) {
-        this.$emit('resized', this.i, pos.h, pos.w, newSize.height, newSize.width)
-        this.eventBus.emit('resize-event', ['resizeend', this.i, this.inner.x, this.inner.y, pos.h, pos.w])
-      }
-    },
-    calcColWidth () {
+    calcColWidth (): number {
       const [m1] = this.margin
 
       return (this.containerWidth - (m1 * (this.cols + 1))) / this.cols
     },
-    calcPosition (x: number, y: number, w: number, h: number) {
+    calcPosition (x: number, y: number, w: number, h: number): GridItemPosition {
       const colWidth = this.calcColWidth()
       const [m1, m2] = this.margin
 
@@ -303,32 +257,31 @@ export default defineComponent({
         width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * m1)
       }
     },
-    calcWH (height: number, width: number) {
+    calcWH (height: number, width: number): { h: number; w: number } {
       const colWidth = this.calcColWidth()
       const [m1, m2] = this.margin
+      const w = Math.round((width + m1) / (colWidth + m1))
+      const h = Math.round((height + m2) / (this.rowHeight + m2))
 
-      let w = Math.round((width + m1) / (colWidth + m1))
-      let h = Math.round((height + m2) / (this.rowHeight + m2))
-
-      // Capping
-      w = Math.max(Math.min(w, this.cols - this.inner.x), 0)
-      h = Math.max(Math.min(h, this.maxRows - this.inner.y), 0)
-      return { h, w }
+      return {
+        h: Math.max(Math.min(w, this.cols - this.inner.x), 0),
+        w: Math.max(Math.min(h, this.maxRows - this.inner.y), 0)
+      }
     },
-    calcXY (top: number, left: number) {
+    calcXY (top: number, left: number): { x: number; y: number } {
       const colWidth = this.calcColWidth()
       const [m1, m2] = this.margin
+      const x = Math.round((left - m1) / (colWidth + m1))
+      const y = Math.round((top - m2) / (this.rowHeight + m2))
 
-      let x = Math.round((left - m1) / (colWidth + m1))
-      let y = Math.round((top - m2) / (this.rowHeight + m2))
-
-      // Capping
-      x = Math.max(Math.min(x, this.cols - this.inner.w), 0)
-      y = Math.max(Math.min(y, this.maxRows - this.inner.h), 0)
-
-      return { x, y }
+      return {
+        x: Math.max(Math.min(x, this.cols - this.inner.w), 0),
+        y: Math.max(Math.min(y, this.maxRows - this.inner.h), 0)
+      }
     },
     createStyle (): void {
+      const pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
+
       if (this.x + this.w > this.cols) {
         this.inner.x = 0
         this.inner.w = (this.w > this.cols) ? this.cols : this.w
@@ -336,7 +289,6 @@ export default defineComponent({
         this.inner.x = this.x
         this.inner.w = this.w
       }
-      const pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
 
       if (this.isDragging) {
         pos.top = this.dragging?.top ?? 0
@@ -353,8 +305,6 @@ export default defineComponent({
         : setTopLeft(pos.top, pos.left, pos.width, pos.height)
     },
     emitContainerResized () {
-      // this.style has width and height with trailing 'px'. The
-      // resized event is without them
       const styleProps = {} as { height: number; width: number }
 
       for (const prop of ['width', 'height']) {
@@ -448,9 +398,10 @@ export default defineComponent({
       const position = getControlPosition(event)
 
       if (!position) return
-      const { x, y } = position
 
+      const { x, y } = position
       const newSize = { height: 0, width: 0 }
+
       let pos
 
       switch (event.type) {
@@ -471,7 +422,6 @@ export default defineComponent({
           break
         }
         case 'resizemove': {
-          //                        console.log("### resize => " + event.type + ", lastInner.x=" + this.lastInner.x + ", lastInner.h=" + this.lastInner.h);
           const coreEvent = createCoreData(this.lastInner.x, this.lastInner.h, x, y)
 
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -561,36 +511,26 @@ export default defineComponent({
       }
 
       if (this.isResizable && !this.static) {
+        const { resizableHandleClass } = this.$options
+        const selector = `.${stringReplacer(resizableHandleClass, ' ', '.')}`
         const maximum = this.calcPosition(0, 0, this.maxW, this.maxH)
         const minimum = this.calcPosition(0, 0, this.minW, this.minH)
-
-        const { resizableHandleClass } = this.$options
-
         const opts = {
-          edges: {
-            bottom: stringReplacer(resizableHandleClass, ' ', '.'),
-            left: false,
-            right: stringReplacer(resizableHandleClass, ' ', '.'),
-            top: false
-          },
+          edges: { bottom: selector, left: false, right: selector, top: false },
           ignoreFrom: this.resizeIgnoreFrom,
           restrictSize: {
-            max: {
-              height: maximum.height,
-              width: maximum.width
-            },
-            min: {
-              height: minimum.height,
-              width: minimum.width
-            }
+            max: { height: maximum.height, width: maximum.width },
+            min: { height: minimum.height, width: minimum.width }
           }
         }
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.interactObj.resizable(opts)
+
         if (!this.resizeEventSet) {
           this.resizeEventSet = true
+
           this.interactObj.on('resizestart resizemove resizeend', event => {
             this.handleResize(event)
           })
@@ -605,64 +545,59 @@ export default defineComponent({
 })
 </script>
 
-<style>
-    .vue-grid-item {
-        touch-action: none;
-        box-sizing: border-box;
-        transition: all 200ms ease;
-        transition-property: left, top, right;
-        background-color: #f2f2f2;
+<style lang="scss">
+  .vue-grid-item {
+    touch-action: none;
+    box-sizing: border-box;
+    transition: all 200ms ease;
+    transition-property: left, top, right;
+    background-color: #f2f2f2;
+
+    &.no-touch {
+      touch-action: none;
     }
 
-    .vue-grid-item.no-touch {
-        -ms-touch-action: none;
-        touch-action: none;
+    &.css-transforms {
+      transition-property: transform;
+      left: 0;
+      right: auto;
     }
 
-    .vue-grid-item.css-transforms {
-        transition-property: transform;
-        left: 0;
-        right: auto;
+    &.resizing {
+      opacity: 0.6;
+      z-index: 3;
     }
 
-    .vue-grid-item.resizing {
-        opacity: 0.6;
-        z-index: 3;
+    &.vue-draggable-dragging {
+      transition:none;
+      z-index: 3;
     }
 
-    .vue-grid-item.vue-draggable-dragging {
-        transition:none;
-        z-index: 3;
+    &.vue-grid-placeholder {
+      background: red;
+      opacity: 0.2;
+      transition-duration: 100ms;
+      z-index: 2;
+      user-select: none;
     }
 
-    .vue-grid-item.vue-grid-placeholder {
-        background: red;
-        opacity: 0.2;
-        transition-duration: 100ms;
-        z-index: 2;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -o-user-select: none;
-        user-select: none;
+    & > .vue-resizable-handle {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      bottom: 0;
+      right: 0;
+      background-image: url('../assets/resize.svg');
+      background-position: bottom right;
+      background-repeat: no-repeat;
+      padding: 0 3px 3px 0;
+      background-origin: content-box;
+      box-sizing: border-box;
+      cursor: se-resize;
     }
 
-    .vue-grid-item > .vue-resizable-handle {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        bottom: 0;
-        right: 0;
-        background: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pg08IS0tIEdlbmVyYXRvcjogQWRvYmUgRmlyZXdvcmtzIENTNiwgRXhwb3J0IFNWRyBFeHRlbnNpb24gYnkgQWFyb24gQmVhbGwgKGh0dHA6Ly9maXJld29ya3MuYWJlYWxsLmNvbSkgLiBWZXJzaW9uOiAwLjYuMSAgLS0+DTwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DTxzdmcgaWQ9IlVudGl0bGVkLVBhZ2UlMjAxIiB2aWV3Qm94PSIwIDAgNiA2IiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjojZmZmZmZmMDAiIHZlcnNpb249IjEuMSINCXhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiDQl4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjZweCIgaGVpZ2h0PSI2cHgiDT4NCTxnIG9wYWNpdHk9IjAuMzAyIj4NCQk8cGF0aCBkPSJNIDYgNiBMIDAgNiBMIDAgNC4yIEwgNCA0LjIgTCA0LjIgNC4yIEwgNC4yIDAgTCA2IDAgTCA2IDYgTCA2IDYgWiIgZmlsbD0iIzAwMDAwMCIvPg0JPC9nPg08L3N2Zz4=');
-        background-position: bottom right;
-        padding: 0 3px 3px 0;
-        background-repeat: no-repeat;
-        background-origin: content-box;
-        box-sizing: border-box;
-        cursor: se-resize;
+    &.disable-user-select {
+      user-select: none;
     }
-
-    .vue-grid-item.disable-user-select {
-        user-select: none;
-    }
+  }
 </style>
