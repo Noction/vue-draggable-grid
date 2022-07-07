@@ -19,9 +19,9 @@ export interface GridItemClasses {
 export interface GridItemData {
   cols: number
   dragEventSet: boolean
-  dragging: { left: number; top: number } | null
+  dragging: { left?: number; top?: number }
   inner: Inner<number>
-  interactObj: Interactable | null
+  interactObj: any
   isDragging: boolean
   isResizing: boolean
   lastInner: Inner<number>

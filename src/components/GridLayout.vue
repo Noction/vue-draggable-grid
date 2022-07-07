@@ -7,26 +7,21 @@
     <grid-item
       v-show="isDragging"
       class="vue-grid-placeholder"
-      :x="placeholder.x"
-      :y="placeholder.y"
-      :w="placeholder.w"
-      :h="placeholder.h"
-      :i="placeholder.i"
-      v-bind="gridItemProps"
+      v-bind="{ ...gridItemProps, ...placeholder }"
     />
-    <grid-item
+    <div
       v-for="item in layout"
       :key="item.i"
-      class="item"
-      :x="item.x"
-      :y="item.y"
-      :w="item.w"
-      :h="item.h"
-      :i="item.i"
-      v-bind="gridItemProps"
     >
-      <slot :item="item" />
-    </grid-item>
+      <slot :item="item">
+        <grid-item
+          class="item"
+          v-bind="{ ...gridItemProps, ...item }"
+        >
+          <slot name="item" :item="item" />
+        </grid-item>
+      </slot>
+    </div>
   </div>
 </template>
 
@@ -44,9 +39,7 @@ const layoutItemRequired = { h: 0, i: '-1', w: 0, x: 0, y: 0 }
 
 export default defineComponent({
   name: 'GridLayout',
-  components: {
-    GridItem
-  },
+  components: { GridItem },
   props: {
     autoSize: {
       type: Boolean,
@@ -126,17 +119,17 @@ export default defineComponent({
   computed: {
     gridItemProps () {
       return {
-        'breakpoint-cols': this.cols,
-        'col-num': this.colNum,
-        'container-width': this.width,
-        'is-draggable': this.isDraggable,
-        'is-resizable': this.isResizable,
-        'last-breakpoint': this.lastBreakpoint,
+        breakpointCols: this.cols,
+        colNum: this.colNum,
+        containerWidth: this.width,
+        isDraggable: this.isDraggable,
+        isResizable: this.isResizable,
+        lastBreakpoint: this.lastBreakpoint,
         margin: this.margin,
-        'max-rows': this.maxRows,
+        maxRows: this.maxRows,
         responsive: this.responsive,
-        'row-height': this.rowHeight,
-        'use-css-transforms': this.useCssTransforms,
+        rowHeight: this.rowHeight,
+        useCssTransforms: this.useCssTransforms,
         width: this.width
       }
     }
@@ -166,6 +159,11 @@ export default defineComponent({
             this.$emit('layout-ready', this.layout)
           })
         }
+
+        if (this.responsive) {
+          this.responsiveGridLayout()
+        }
+
         this.updateHeight()
       })
     }
@@ -181,6 +179,7 @@ export default defineComponent({
     this.eventBus.off('drag-event', this.dragEvent)
 
     removeWindowEventListener('resize', this.onWindowResize)
+
     if (this.erd) {
       this.erd.uninstall(this.$refs.item)
     }
@@ -240,43 +239,31 @@ export default defineComponent({
         })
       }
 
-      // Move the element to the dragged location.
       this.$emit('update:layout', moveElement(this.layout, l, x, y, true, this.preventCollision))
+
       compact(this.layout, this.verticalCompact)
-      // needed because vue can't detect changes on array element properties
+
       this.eventBus.emit('recalculate-styles')
       this.updateHeight()
-      if (eventName === 'dragend') this.$emit('update:layout', this.layout)
+
+      if (eventName === 'dragend') {
+        this.$emit('update:layout', this.layout)
+      }
     },
     findDifference (layout: Layout, originalLayout: Layout): Layout {
+      const uniqueResultOne = layout.filter(l => !originalLayout.some(ol => l.i === ol.i))
+      const uniqueResultTwo = originalLayout.filter(ol => !layout.some(l => ol.i === l.i))
 
-      //Find values that are in result1 but not in result2
-      const uniqueResultOne = layout.filter(function (obj) {
-        return !originalLayout.some(function (obj2) {
-          return obj.i === obj2.i
-        })
-      })
-
-      //Find values that are in result2 but not in result1
-      const uniqueResultTwo = originalLayout.filter(function (obj) {
-        return !layout.some(function (obj2) {
-          return obj.i === obj2.i
-        })
-      })
-
-      //Combine the two arrays of unique entries#
       return uniqueResultOne.concat(uniqueResultTwo)
     },
     initResponsiveFeatures (): void {
-      // clear layouts
       this.layouts = Object.assign({}, this.responsiveLayouts)
     },
     layoutUpdate (): void {
       if (this.layout && this.originalLayout) {
         if (this.layout.length !== this.originalLayout.length) {
-          // console.log("### LAYOUT UPDATE!", this.layout.length, this.originalLayout.length);
-
           const diff = this.findDifference(this.layout, this.originalLayout)
+          // TODO
 
           if (diff.length > 0) {
             if (this.layout.length > this.originalLayout.length) {
@@ -295,6 +282,7 @@ export default defineComponent({
         }
 
         compact(this.layout, this.verticalCompact)
+
         this.updateHeight()
 
         this.$emit('update:layout', this.layout)
@@ -319,11 +307,8 @@ export default defineComponent({
 
         hasCollisions = collisions.length > 0
 
-        // If we're colliding, we need adjust the placeholder.
         if (hasCollisions) {
-          // adjust w && h to maximum allowed space
-          let leastX = Infinity,
-            leastY = Infinity
+          let leastX = Infinity, leastY = Infinity
 
           collisions.forEach(layoutItem => {
             if (layoutItem.x > l.x) leastX = Math.min(leastX, layoutItem.x)
@@ -338,7 +323,6 @@ export default defineComponent({
       }
 
       if (!hasCollisions) {
-        // Set new width and height.
         l.w = w
         l.h = h
       }
@@ -349,6 +333,7 @@ export default defineComponent({
         this.placeholder.y = y
         this.placeholder.w = l.w
         this.placeholder.h = l.h
+
         this.$nextTick(() => {
           this.isDragging = true
         })
@@ -373,12 +358,10 @@ export default defineComponent({
       const newBreakpoint = getBreakpointFromWidth(this.breakpoints, this.width)
       const newCols = getColsFromBreakpoint(newBreakpoint, this.cols)
 
-      // save actual layout in layouts
       if (this.lastBreakpoint && !this.layouts[this.lastBreakpoint]) {
         this.layouts[this.lastBreakpoint] = cloneLayout(this.layout)
       }
 
-      // Find or generate a new layout.
       const layout = findOrGenerateResponsiveLayout(
         this.originalLayout,
         this.layouts,
@@ -389,22 +372,21 @@ export default defineComponent({
         this.verticalCompact
       )
 
-      // Store the new layout.
       this.layouts[newBreakpoint] = layout
 
       if (this.lastBreakpoint !== newBreakpoint) {
         this.$emit('update:breakpoint', newBreakpoint, layout)
       }
 
-      // new prop sync
-      this.$emit('update:layout', layout)
       this.lastBreakpoint = newBreakpoint
+
+      this.$emit('update:layout', layout)
       this.eventBus.emit('set-col-num', getColsFromBreakpoint(newBreakpoint, this.cols))
     },
     updateHeight (): void {
-      this.mergedStyle = {
-        height: this.containerHeight()
-      }
+      const height = this.containerHeight()
+
+      this.mergedStyle = { height }
     }
   }
 })

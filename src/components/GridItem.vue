@@ -14,14 +14,8 @@
 </template>
 
 <script lang="ts">
-import '@interactjs/auto-start'
-import '@interactjs/actions/drag'
-import '@interactjs/actions/resize'
-import '@interactjs/modifiers'
-import '@interactjs/dev-tools'
-
 import { getColsFromBreakpoint } from '@/helpers/responsiveUtils'
-import interact from '@interactjs/interact'
+import interact from '@interactjs/interactjs'
 import { Breakpoints, BreakpointsKeys } from '@/types/helpers'
 import { GridItemClasses, GridItemData, GridItemPosition } from '@/types/components'
 import { PropType, defineComponent } from 'vue'
@@ -43,15 +37,6 @@ export default defineComponent({
     containerWidth: {
       type: Number,
       required: true
-    },
-    dragAllowFrom: {
-      type: String,
-      default: null
-    },
-    dragIgnoreFrom: {
-      type: String,
-      required: false,
-      default: 'a, button'
     },
     h: {
       type: Number,
@@ -97,11 +82,6 @@ export default defineComponent({
       type: Number,
       default: 1
     },
-    resizeIgnoreFrom: {
-      type: String,
-      required: false,
-      default: 'a, button'
-    },
     rowHeight: {
       type: Number,
       required: true
@@ -132,7 +112,7 @@ export default defineComponent({
     return {
       cols: this.colNum,
       dragEventSet: false,
-      dragging: null,
+      dragging: {},
       inner: { h: this.h, w: this.w, x: this.x, y: this.y },
       interactObj: null,
       isDragging: false,
@@ -169,18 +149,15 @@ export default defineComponent({
   watch: {
     cols () {
       this.tryMakeResizable()
-      this.createStyle()
       this.emitContainerResized()
     },
     containerWidth () {
       this.tryMakeResizable()
-      this.createStyle()
       this.emitContainerResized()
     },
     h (newVal) {
       this.inner.h = newVal
-      this.createStyle()
-      // this.emitContainerResized();
+      this.emitContainerResized()
     },
     isDraggable () {
       this.tryMakeDraggable()
@@ -201,7 +178,6 @@ export default defineComponent({
       this.tryMakeResizable()
     },
     rowHeight () {
-      this.createStyle()
       this.emitContainerResized()
     },
     static () {
@@ -237,7 +213,6 @@ export default defineComponent({
     this.cols = getColsFromBreakpoint(this.lastBreakpoint, this.breakpointCols)
 
     this.tryMakeDraggable()
-    this.tryMakeResizable()
     this.createStyle()
   },
   methods: {
@@ -264,8 +239,8 @@ export default defineComponent({
       const h = Math.round((height + m2) / (this.rowHeight + m2))
 
       return {
-        h: Math.max(Math.min(w, this.cols - this.inner.x), 0),
-        w: Math.max(Math.min(h, this.maxRows - this.inner.y), 0)
+        h: Math.max(Math.min(h, this.maxRows - this.inner.y), 0),
+        w: Math.max(Math.min(w, this.cols - this.inner.x), 0)
       }
     },
     calcXY (top: number, left: number): { x: number; y: number } {
@@ -291,8 +266,8 @@ export default defineComponent({
       }
 
       if (this.isDragging) {
-        pos.top = this.dragging?.top ?? 0
-        pos.left = this.dragging?.left ?? 0
+        pos.top = this.dragging.top ?? 0
+        pos.left = this.dragging.left ?? 0
       }
 
       if (this.isResizing) {
@@ -305,6 +280,8 @@ export default defineComponent({
         : setTopLeft(pos.top, pos.left, pos.width, pos.height)
     },
     emitContainerResized () {
+      this.createStyle()
+
       const styleProps = {} as { height: number; width: number }
 
       for (const prop of ['width', 'height']) {
@@ -316,6 +293,7 @@ export default defineComponent({
         // eslint-disable-next-line prefer-destructuring
         styleProps[prop] = matches[1]
       }
+
       this.$emit('container-resized', this.i, this.h, this.w, styleProps.height, styleProps.width)
     },
     handleDrag (event: any) {
@@ -324,20 +302,15 @@ export default defineComponent({
 
       const position = getControlPosition(event)
 
-      // Get the current drag point from the event. This is used as the offset.
-      if (!position) return // not possible but satisfies flow
+      if (!position) return
+
       const { x, y } = position
 
-      // let shouldUpdate = false;
       const newPosition = { left: 0, top: 0 }
 
       switch (event.type) {
         case 'dragstart': {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           this.previousInner.x = this.inner.x
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           this.previousInner.y = this.inner.y
 
           const parentRect = event.target.offsetParent.getBoundingClientRect()
@@ -358,27 +331,21 @@ export default defineComponent({
           newPosition.left = clientRect.left - parentRect.left
           newPosition.top = clientRect.top - parentRect.top
 
-          this.dragging = null
+          this.dragging = {}
           this.isDragging = false
-
           break
         }
         case 'dragmove': {
           const coreEvent = createCoreData(this.lastInner.x, this.lastInner.y, x, y)
 
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          newPosition.left = this.dragging.left + coreEvent.deltaX
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          newPosition.top = this.dragging.top + coreEvent.deltaY
+          newPosition.left = (this.dragging?.left ?? 0) + coreEvent.deltaX
+          newPosition.top = (this.dragging?.top ?? 0) + coreEvent.deltaY
 
           this.dragging = newPosition
           break
         }
       }
 
-      // Get new XY
       const pos = this.calcXY(newPosition.top, newPosition.left)
 
       this.lastInner.x = x
@@ -387,6 +354,7 @@ export default defineComponent({
       if (this.inner.x !== pos.x || this.inner.y !== pos.y) {
         this.$emit('move', this.i, pos.x, pos.y)
       }
+
       if (event.type === 'dragend' && (this.previousInner.x !== this.inner.x || this.previousInner.y !== this.inner.y)) {
         this.$emit('moved', this.i, pos.x, pos.y)
       }
@@ -395,6 +363,7 @@ export default defineComponent({
     },
     handleResize (event: any) {
       if (this.static) return
+
       const position = getControlPosition(event)
 
       if (!position) return
@@ -406,68 +375,48 @@ export default defineComponent({
 
       switch (event.type) {
         case 'resizestart': {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           this.previousInner.w = this.inner.w
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           this.previousInner.h = this.inner.h
+
           pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
+
           newSize.width = pos.width
           newSize.height = pos.height
 
           this.resizing = newSize
-
           this.isResizing = true
           break
         }
         case 'resizemove': {
           const coreEvent = createCoreData(this.lastInner.x, this.lastInner.h, x, y)
 
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          newSize.width = this.resizing.width + coreEvent.deltaX
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          newSize.height = this.resizing.height + coreEvent.deltaY
+          newSize.width = (this.resizing?.width ?? 0) + coreEvent.deltaX
+          newSize.height = (this.resizing?.height ?? 0) + coreEvent.deltaY
 
-          ///console.log("### resize => " + event.type + ", deltaX=" + coreEvent.deltaX + ", deltaY=" + coreEvent.deltaY);
           this.resizing = newSize
+          this.isResizing = true
           break
         }
         case 'resizeend': {
-          //console.log("### resize end => x=" +this.inner.x + " y=" + this.inner.y + " w=" + this.inner.w + " h=" + this.inner.h);
           pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
+
           newSize.width = pos.width
           newSize.height = pos.height
-          //                        console.log("### resize end => " + JSON.stringify(newSize));
+
           this.resizing = null
           this.isResizing = false
           break
         }
       }
 
-      // Get new WH
       pos = this.calcWH(newSize.height, newSize.width)
-      if (pos.w < this.minW) {
-        pos.w = this.minW
-      }
-      if (pos.w > this.maxW) {
-        pos.w = this.maxW
-      }
-      if (pos.h < this.minH) {
-        pos.h = this.minH
-      }
-      if (pos.h > this.maxH) {
-        pos.h = this.maxH
-      }
 
-      if (pos.h < 1) {
-        pos.h = 1
-      }
-      if (pos.w < 1) {
-        pos.w = 1
-      }
+      if (pos.w < this.minW) pos.w = this.minW
+      if (pos.w > this.maxW) pos.w = this.maxW
+      if (pos.h < this.minH) pos.h = this.minH
+      if (pos.h > this.maxH) pos.h = this.maxH
+      if (pos.h < 1) pos.h = 1
+      if (pos.w < 1) pos.w = 1
 
       this.lastInner.x = x
       this.lastInner.h = y
@@ -475,6 +424,7 @@ export default defineComponent({
       if (this.inner.w !== pos.w || this.inner.h !== pos.h) {
         this.$emit('resize', this.i, pos.h, pos.w, newSize.height, newSize.width)
       }
+
       if (event.type === 'resizeend' && (this.previousInner.w !== this.inner.w || this.previousInner.h !== this.inner.h)) {
         this.$emit('resized', this.i, pos.h, pos.w, newSize.height, newSize.width)
       }
@@ -488,20 +438,15 @@ export default defineComponent({
       if (!this.interactObj) {
         this.interactObj = interact(this.$refs.item)
       }
+
       if (this.isDraggable && !this.static) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.interactObj.draggable({ allowFrom: this.dragAllowFrom, ignoreFrom: this.dragIgnoreFrom })
-        /*this.interactObj.draggable({allowFrom: '.vue-draggable-handle'});*/
+        this.interactObj.draggable({ ignoreFrom: 'a, button' })
+
         if (!this.dragEventSet) {
           this.dragEventSet = true
-          this.interactObj.on('dragstart dragmove dragend', event => {
-            this.handleDrag(event)
-          })
+          this.interactObj.on('dragstart dragmove dragend', this.handleDrag)
         }
       } else {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         this.interactObj.draggable({ enabled: false })
       }
     },
@@ -517,27 +462,20 @@ export default defineComponent({
         const minimum = this.calcPosition(0, 0, this.minW, this.minH)
         const opts = {
           edges: { bottom: selector, left: false, right: selector, top: false },
-          ignoreFrom: this.resizeIgnoreFrom,
+          ignoreFrom: 'a, button',
           restrictSize: {
             max: { height: maximum.height, width: maximum.width },
             min: { height: minimum.height, width: minimum.width }
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         this.interactObj.resizable(opts)
 
         if (!this.resizeEventSet) {
           this.resizeEventSet = true
-
-          this.interactObj.on('resizestart resizemove resizeend', event => {
-            this.handleResize(event)
-          })
+          this.interactObj.on('resizestart resizemove resizeend', this.handleResize)
         }
       } else {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         this.interactObj.resizable({ enabled: false })
       }
     }

@@ -61,7 +61,6 @@ module.exports = {
     ],
     // disallow Space Before Blocks
     'space-before-blocks': 'error',
-    // TODO: add rule later promise should always have return
     // "promise/always-return": "error",
     // requires space before/after arrow function's arrow.
     'arrow-spacing': 'error',
