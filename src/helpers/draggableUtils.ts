@@ -10,7 +10,6 @@ const offsetXYFromParentOf = (evt: any) => {
 }
 
 export const createCoreData = (lastX: number, lastY: number, x: number, y: number) => {
-  // State changes are often (but not always!) async. We want the latest value.
   const isStart = !isNum(lastX)
 
   return isStart

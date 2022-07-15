@@ -1,6 +1,12 @@
-import { Interactable } from '@interactjs/core/Interactable'
 import elementResizeDetectorMaker from 'element-resize-detector'
-import { BreakpointsKeys, Layout, LayoutItemRequired, Position, ResponsiveLayout, Transform } from '@/types/helpers'
+import {
+  BreakpointsKeys,
+  Layout,
+  LayoutItemRequired,
+  Position,
+  ResponsiveLayout,
+  Transform
+} from '@/types/helpers'
 
 type InnerKeys = 'h' | 'w' | 'x' | 'y'
 

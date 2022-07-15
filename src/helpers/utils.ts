@@ -5,20 +5,21 @@ export const bottom = (layout: Layout): number => {
 
   let bottomY: number
 
-  for (let i = 0, len = layout.length; i < len; i++) {
+  for (let i = 0; i < layout.length; i++) {
     bottomY = layout[i].y + layout[i].h
 
     if (bottomY > max) {
       max = bottomY
     }
   }
+
   return max
 }
 
 export const cloneLayout = (layout: Layout): Layout => {
   const newLayout = Array(layout.length)
 
-  for (let i = 0, len = layout.length; i < len; i++) {
+  for (let i = 0; i < layout.length; i++) {
     newLayout[i] = cloneLayoutItem(layout[i])
   }
   return newLayout
@@ -35,7 +36,7 @@ export const compact = (layout: Layout, verticalCompact: boolean): Layout => {
   const sorted = sortLayoutItemsByRowCol(layout)
   const out = Array(layout.length)
 
-  for (let i = 0, len = sorted.length; i < len; i++) {
+  for (let i = 0; i < sorted.length; i++) {
 
     let l = sorted[i]
 
@@ -72,7 +73,7 @@ export const compactItem = (compareWith: Layout, l: LayoutItem, verticalCompact:
 export const correctBounds  = (layout: Layout, bounds: { cols: number }): Layout => {
   const collidesWith = getStatics(layout)
 
-  for (let i = 0, len = layout.length; i < len; i++) {
+  for (let i = 0; i < layout.length; i++) {
     const l = layout[i]
 
     if (l.x + l.w > bounds.cols) l.x = bounds.cols - l.w
@@ -138,7 +139,7 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
     return layout
   }
 
-  for (let i = 0, len = collisions.length; i < len; i++) {
+  for (let i = 0; i < collisions.length; i++) {
     const collision = collisions[i]
 
     if (collision.moved) continue
@@ -164,12 +165,10 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
       i: '-1',
       w: itemToMove.w,
       x: itemToMove.x,
-      y: itemToMove.y
+      y: Math.max(collidesWith.y - itemToMove.h, 0)
     }
 
-    fakeItem.y = Math.max(collidesWith.y - itemToMove.h, 0)
     if (!getFirstCollision(layout, fakeItem)) {
-
       return moveElement(layout, itemToMove, fakeItem.x, fakeItem.y, preventCollision)
     }
   }
@@ -212,17 +211,15 @@ export const validateLayout = (layout: Layout, contextName?: string): void => {
   const subProps = ['x', 'y', 'w', 'h']
 
   if (!Array.isArray(layout)) {
-    throw new Error(`${contextName  } must be an array!`)
+    throw new Error(`${contextName} must be an array!`)
   }
 
-  for (let i = 0, len = layout.length; i < len; i++) {
-
+  for (let i = 0; i < layout.length; i++) {
     const item = layout[i]
 
     for (let j = 0; j < subProps.length; j++) {
-
       if (typeof item[subProps[j]] !== 'number') {
-        throw new Error(`VueGridLayout: ${  contextName  }[${  i  }].${  subProps[j]  } must be a number!`)
+        throw new Error(`VueGridLayout: ${contextName}[${i}].${subProps[j]} must be a number!`)
       }
     }
 

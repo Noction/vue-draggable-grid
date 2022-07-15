@@ -3,9 +3,7 @@ import { cloneLayout, compact, correctBounds } from './utils'
 
 export const findOrGenerateResponsiveLayout: findOrGenerateResponsiveLayoutFnc = (orgLayout, layouts, breakpoints, breakpoint, lastBreakpoint, cols, verticalCompact)  => {
   if (Object.prototype.hasOwnProperty.call(layouts, breakpoint)) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return cloneLayout(layouts[breakpoint])
+    return cloneLayout(layouts[breakpoint] || [])
   }
 
   let layout = orgLayout
@@ -13,7 +11,7 @@ export const findOrGenerateResponsiveLayout: findOrGenerateResponsiveLayoutFnc =
   const breakpointsSorted = sortBreakpoints(breakpoints)
   const breakpointsAbove = breakpointsSorted.slice(breakpointsSorted.indexOf(breakpoint))
 
-  for (let i = 0, len = breakpointsAbove.length; i < len; i++) {
+  for (let i = 0; i < breakpointsAbove.length; i++) {
     const b = breakpointsAbove[i]
 
     if (layouts[b]) {
@@ -30,9 +28,10 @@ export const findOrGenerateResponsiveLayout: findOrGenerateResponsiveLayoutFnc =
 
 export const getBreakpointFromWidth = (breakpoints: Breakpoints, width: number): BreakpointsKeys => {
   const sorted = sortBreakpoints(breakpoints)
+
   let [matching] = sorted
 
-  for (let i = 1, len = sorted.length; i < len; i++) {
+  for (let i = 1; i < sorted.length; i++) {
     const breakpointName = sorted[i]
 
     if (width > (breakpoints[breakpointName] ?? 1)) matching = breakpointName
@@ -45,6 +44,7 @@ export const getColsFromBreakpoint = (breakpoint: string, cols: Breakpoints): nu
   if (!cols[breakpoint]) {
     throw new Error(`ResponsiveGridLayout: \`cols\` entry for breakpoint ${  breakpoint  } is missing!`)
   }
+
   return cols[breakpoint]
 }
 

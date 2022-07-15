@@ -48,11 +48,11 @@ export default defineComponent({
     },
     isDraggable: {
       type: Boolean,
-      default: false
+      required: true
     },
     isResizable: {
       type: Boolean,
-      default: true
+      required: true
     },
     lastBreakpoint: {
       type: String as PropType<BreakpointsKeys>,
@@ -60,7 +60,7 @@ export default defineComponent({
     },
     margin: {
       type: Array as PropType<number[]>,
-      default: () => [10, 10]
+      required: true
     },
     maxH: {
       type: Number,
@@ -92,7 +92,7 @@ export default defineComponent({
     },
     useCssTransforms: {
       type: Boolean,
-      default: true
+      required: true
     },
     w: {
       type: Number,
@@ -296,7 +296,7 @@ export default defineComponent({
 
       this.$emit('container-resized', this.i, this.h, this.w, styleProps.height, styleProps.width)
     },
-    handleDrag (event: any) {
+    handleDrag (event: any): void {
       if (this.static) return
       if (this.isResizing) return
 
@@ -361,7 +361,7 @@ export default defineComponent({
 
       this.eventBus.emit('drag-event', [event.type, this.i, pos.x, pos.y, this.inner.h, this.inner.w])
     },
-    handleResize (event: any) {
+    handleResize (event: any): void {
       if (this.static) return
 
       const position = getControlPosition(event)
@@ -371,17 +371,15 @@ export default defineComponent({
       const { x, y } = position
       const newSize = { height: 0, width: 0 }
 
-      let pos
-
       switch (event.type) {
         case 'resizestart': {
           this.previousInner.w = this.inner.w
           this.previousInner.h = this.inner.h
 
-          pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
+          const { height, width } = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
 
-          newSize.width = pos.width
-          newSize.height = pos.height
+          newSize.width = width
+          newSize.height = height
 
           this.resizing = newSize
           this.isResizing = true
@@ -398,10 +396,10 @@ export default defineComponent({
           break
         }
         case 'resizeend': {
-          pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
+          const { height, width } = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
 
-          newSize.width = pos.width
-          newSize.height = pos.height
+          newSize.width = width
+          newSize.height = height
 
           this.resizing = null
           this.isResizing = false
@@ -409,7 +407,7 @@ export default defineComponent({
         }
       }
 
-      pos = this.calcWH(newSize.height, newSize.width)
+      const pos = this.calcWH(newSize.height, newSize.width)
 
       if (pos.w < this.minW) pos.w = this.minW
       if (pos.w > this.maxW) pos.w = this.maxW
@@ -431,10 +429,10 @@ export default defineComponent({
 
       this.eventBus.emit('resize-event', [event.type, this.i, this.inner.x, this.inner.y, pos.h, pos.w])
     },
-    setColNum (colNum: number) {
+    setColNum (colNum: number): void {
       this.cols = colNum
     },
-    tryMakeDraggable () {
+    tryMakeDraggable (): void {
       if (!this.interactObj) {
         this.interactObj = interact(this.$refs.item)
       }
@@ -450,7 +448,7 @@ export default defineComponent({
         this.interactObj.draggable({ enabled: false })
       }
     },
-    tryMakeResizable () {
+    tryMakeResizable (): void {
       if (!this.interactObj) {
         this.interactObj = interact(this.$refs.item)
       }

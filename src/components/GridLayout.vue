@@ -9,19 +9,17 @@
       class="vue-grid-placeholder"
       v-bind="{ ...gridItemProps, ...placeholder }"
     />
-    <div
+    <grid-item
       v-for="item in layout"
       :key="item.i"
+      class="item"
+      v-bind="{ ...gridItemProps, ...item }"
     >
-      <slot :item="item">
-        <grid-item
-          class="item"
-          v-bind="{ ...gridItemProps, ...item }"
-        >
-          <slot name="item" :item="item" />
-        </grid-item>
-      </slot>
-    </div>
+      <slot
+        name="item"
+        :item="item"
+      />
+    </grid-item>
   </div>
 </template>
 
@@ -33,6 +31,7 @@ import { GridLayoutData, GridLayoutEvent } from '@/types/components'
 import { PropType, defineComponent } from 'vue'
 import { addWindowEventListener, removeWindowEventListener } from '@/helpers/DOM'
 import { bottom, cloneLayout, compact, getAllCollisions, getLayoutItem, moveElement, validateLayout } from '@/helpers/utils'
+import { breakpointsValidator, marginValidator } from '@/helpers/propsValidators'
 import { findOrGenerateResponsiveLayout, getBreakpointFromWidth, getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 
 const layoutItemRequired = { h: 0, i: '-1', w: 0, x: 0, y: 0 }
@@ -47,7 +46,8 @@ export default defineComponent({
     },
     breakpoints: {
       type: Object as PropType<Breakpoints>,
-      default: () => ({ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 })
+      default: () => ({ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }),
+      validator: breakpointsValidator
     },
     colNum: {
       type: Number,
@@ -55,7 +55,8 @@ export default defineComponent({
     },
     cols: {
       type: Object as PropType<Breakpoints>,
-      default: () => ({ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 })
+      default: () => ({ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }),
+      validator: breakpointsValidator
     },
     isDraggable: {
       type: Boolean,
@@ -71,7 +72,8 @@ export default defineComponent({
     },
     margin: {
       type: Array as PropType<number[]>,
-      default: () => [10, 10]
+      default: () => [10, 10],
+      validator: marginValidator
     },
     maxRows: {
       type: Number,
@@ -160,9 +162,7 @@ export default defineComponent({
           })
         }
 
-        if (this.responsive) {
-          this.responsiveGridLayout()
-        }
+        if (this.responsive) this.responsiveGridLayout()
 
         this.updateHeight()
       })
@@ -347,6 +347,7 @@ export default defineComponent({
       if (this.responsive) this.responsiveGridLayout()
 
       compact(this.layout, this.verticalCompact)
+
       this.eventBus.emit('recalculate-styles')
       this.updateHeight()
 
