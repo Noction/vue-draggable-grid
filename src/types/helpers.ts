@@ -1,5 +1,3 @@
-type RecordBreakpoint<Type> = Partial<Record<BreakpointsKeys, Type>>
-
 export type Breakpoints = RecordBreakpoint<number>
 
 export type BreakpointsKeys = 'lg' | 'md' | 'sm' | 'xs' | 'xxs'
@@ -31,6 +29,8 @@ export interface Position extends HW {
   top: string
   left: string
 }
+
+export type RecordBreakpoint<Type> = Partial<Record<BreakpointsKeys, Type>>
 
 export type ResponsiveLayout = RecordBreakpoint<Layout>
 

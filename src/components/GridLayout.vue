@@ -10,392 +10,419 @@
       v-bind="{ ...gridItemProps, ...placeholder }"
     />
     <grid-item
-      v-for="item in layout"
-      :key="item.i"
+      v-for="layoutItem in layout"
+      :key="layoutItem.i"
       class="item"
-      v-bind="{ ...gridItemProps, ...item }"
+      v-bind="{ ...gridItemProps, ...layoutItem }"
     >
       <slot
         name="item"
-        :item="item"
+        :item="layoutItem"
       />
     </grid-item>
   </div>
 </template>
 
-<script lang="ts">
-import GridItem from '@/components/GridItem.vue'
+<script setup lang="ts">
+import GridItem from './GridItem.vue'
+import { GridLayoutEvent } from '@/types/components'
 import elementResizeDetectorMaker from 'element-resize-detector'
-import { Breakpoints, Layout, ResponsiveLayout } from '@/types/helpers'
-import { GridLayoutData, GridLayoutEvent } from '@/types/components'
-import { PropType, defineComponent } from 'vue'
+import { emitterKey } from '@/types/symbols'
+import mitt from 'mitt'
+import {
+  Breakpoints,
+  BreakpointsKeys,
+  Layout,
+  LayoutItemRequired,
+  RecordBreakpoint,
+  ResponsiveLayout
+} from '@/types/helpers'
+import {
+  PropType,
+  computed,
+  defineEmits,
+  defineProps,
+  inject,
+  nextTick,
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  ref, watch
+} from 'vue'
 import { addWindowEventListener, removeWindowEventListener } from '@/helpers/DOM'
-import { bottom, cloneLayout, compact, getAllCollisions, getLayoutItem, moveElement, validateLayout } from '@/helpers/utils'
+import {
+  bottom,
+  cloneLayout,
+  compact,
+  getAllCollisions,
+  getLayoutItem,
+  moveElement,
+  validateLayout
+} from '@/helpers/utils'
 import { breakpointsValidator, marginValidator } from '@/helpers/propsValidators'
 import { findOrGenerateResponsiveLayout, getBreakpointFromWidth, getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 
+const props = defineProps({
+  autoSize: {
+    default: true,
+    type: Boolean
+  },
+  breakpoints: {
+    default: () => ({ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }),
+    type: Object as PropType<Breakpoints>,
+    validator: breakpointsValidator
+  },
+  colNum: {
+    default: 12,
+    type: Number
+  },
+  cols: {
+    default: () => ({ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }),
+    type: Object as PropType<Breakpoints>,
+    validator: breakpointsValidator
+  },
+  isDraggable: {
+    default: true,
+    type: Boolean
+  },
+  isResizable: {
+    default: true,
+    type: Boolean
+  },
+  layout: {
+    required: true,
+    type: Array as PropType<Layout>
+  },
+  margin: {
+    default: () => [10, 10],
+    type: Array as PropType<number[]>,
+    validator: marginValidator
+  },
+  maxRows: {
+    default: Infinity,
+    type: Number
+  },
+  preventCollision: {
+    default: false,
+    type: Boolean
+  },
+  responsive: {
+    default: false,
+    type: Boolean
+  },
+  responsiveLayouts: {
+    default: () => ({}),
+    type: Object as PropType<ResponsiveLayout>
+  },
+  rowHeight: {
+    default: 150,
+    type: Number
+  },
+  useCssTransforms: {
+    default: true,
+    type: Boolean
+  },
+  verticalCompact: {
+    default: true,
+    type: Boolean
+  }
+})
+
+const emit = defineEmits(['update:layout', 'layout-ready', 'update:breakpoint', 'layout-created', 'layout-before-mount', 'layout-mounted'])
+
 const layoutItemRequired = { h: 0, i: '-1', w: 0, x: 0, y: 0 }
 
-export default defineComponent({
-  name: 'GridLayout',
-  components: { GridItem },
-  props: {
-    autoSize: {
-      type: Boolean,
-      default: true
-    },
-    breakpoints: {
-      type: Object as PropType<Breakpoints>,
-      default: () => ({ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }),
-      validator: breakpointsValidator
-    },
-    colNum: {
-      type: Number,
-      default: 12
-    },
-    cols: {
-      type: Object as PropType<Breakpoints>,
-      default: () => ({ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }),
-      validator: breakpointsValidator
-    },
-    isDraggable: {
-      type: Boolean,
-      default: true
-    },
-    isResizable: {
-      type: Boolean,
-      default: true
-    },
-    layout: {
-      type: Array as PropType<Layout>,
-      required: true
-    },
-    margin: {
-      type: Array as PropType<number[]>,
-      default: () => [10, 10],
-      validator: marginValidator
-    },
-    maxRows: {
-      type: Number,
-      default: Infinity
-    },
-    preventCollision: {
-      type: Boolean,
-      default: false
-    },
-    responsive: {
-      type: Boolean,
-      default: false
-    },
-    responsiveLayouts: {
-      type: Object as PropType<ResponsiveLayout>,
-      default: () => ({})
-    },
-    rowHeight: {
-      type: Number,
-      default: 150
-    },
-    useCssTransforms: {
-      type: Boolean,
-      default: true
-    },
-    verticalCompact: {
-      type: Boolean,
-      default: true
-    }
-  },
-  emits: ['layout-ready', 'update:layout', 'layout-created', 'layout-before-mount', 'layout-mounted', 'update:breakpoint'],
-  data (): GridLayoutData {
-    return {
-      erd: elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }),
-      isDragging: false,
-      lastBreakpoint: 'lg',
-      lastLayoutLength: 0,
-      layouts: {},
-      mergedStyle: {},
-      originalLayout: this.layout,
-      placeholder: { h: 0, i: '-1', w: 0, x: 0, y: 0 },
-      width: 0
-    }
-  },
-  computed: {
-    gridItemProps () {
-      return {
-        breakpointCols: this.cols,
-        colNum: this.colNum,
-        containerWidth: this.width,
-        isDraggable: this.isDraggable,
-        isResizable: this.isResizable,
-        lastBreakpoint: this.lastBreakpoint,
-        margin: this.margin,
-        maxRows: this.maxRows,
-        responsive: this.responsive,
-        rowHeight: this.rowHeight,
-        useCssTransforms: this.useCssTransforms,
-        width: this.width
-      }
-    }
-  },
-  watch: {
-    colNum (value: number) {
-      this.eventBus.emit('set-col-num', value)
-    },
-    layout () {
-      this.layoutUpdate()
-    },
-    margin () {
-      this.updateHeight()
-    },
-    responsive (value: boolean) {
-      if (!value) {
-        this.$emit('update:layout', this.originalLayout)
-        this.eventBus.emit('set-col-num', this.colNum)
-      }
-      this.onWindowResize()
-    },
-    width (newValue: number, oldValue: number) {
-      this.$nextTick( () => {
+const emitter = inject(emitterKey, mitt())
+const erd = ref(elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }))
+const isDragging = ref(false)
+const lastBreakpoint = ref<BreakpointsKeys>('lg')
+const lastLayoutLength = ref(0)
+const layouts = ref<RecordBreakpoint<Layout>>({})
+const mergedStyle = ref({})
+const originalLayout = ref(props.layout)
+const placeholder = ref({ h: 0, i: '-1', w: 0, x: 0, y: 0 })
+const width = ref(0)
+// refs
+const item = ref<HTMLDivElement | null>(null)
 
-        if (oldValue === 0) {
-          this.$nextTick(() => {
-            this.$emit('layout-ready', this.layout)
-          })
-        }
+// computed
+const gridItemProps = computed(() => ({
+  breakpointCols: props.cols,
+  colNum: props.colNum,
+  containerWidth: width.value,
+  isDraggable: props.isDraggable,
+  isResizable: props.isResizable,
+  lastBreakpoint: lastBreakpoint.value,
+  margin: props.margin,
+  maxRows: props.maxRows,
+  responsive: props.responsive,
+  rowHeight: props.rowHeight,
+  useCssTransforms: props.useCssTransforms,
+  width: width.value
+}))
 
-        if (this.responsive) this.responsiveGridLayout()
+// created
 
-        this.updateHeight()
+// watch
+watch(() => props.colNum, value => {
+  emitter.emit('set-col-num', value)
+})
+watch(() => props.layout, () => {
+  layoutUpdate()
+})
+watch(() => props.margin, () => {
+  updateHeight()
+})
+watch(() => props.responsive, value => {
+  if (!value) {
+    emit('update:layout', originalLayout.value)
+    emitter.emit('set-col-num', props.colNum)
+  }
+  onWindowResize()
+})
+watch(() => width.value, (value, oldValue) => {
+  nextTick(() => {
+
+    if (oldValue === 0) {
+      nextTick(() => {
+        emit('layout-ready', props.layout)
       })
     }
-  },
-  created () {
-    this.eventBus.on('resize-event', this.resizeEvent)
-    this.eventBus.on('drag-event', this.dragEvent)
 
-    this.$emit('layout-created', this.layout)
-  },
-  beforeUnmount () {
-    this.eventBus.off('resize-event', this.resizeEvent)
-    this.eventBus.off('drag-event', this.dragEvent)
+    if (props.responsive) responsiveGridLayout()
 
-    removeWindowEventListener('resize', this.onWindowResize)
+    updateHeight()
+  })
+})
+// methods
+const layoutUpdate = (): void => {
+  if (props.layout && originalLayout.value) {
+    if (props.layout.length !== originalLayout.value.length) {
+      const diff = findDifference(props.layout, originalLayout.value)
+      // TODO
 
-    if (this.erd) {
-      this.erd.uninstall(this.$refs.item)
+      if (diff.length > 0) {
+        if (props.layout.length > originalLayout.value.length) {
+          originalLayout.value = originalLayout.value.concat(diff)
+        } else {
+          originalLayout.value = originalLayout.value.filter(obj => {
+            return !diff.some(obj2 => {
+              return obj.i === obj2.i
+            })
+          })
+        }
+      }
+
+      lastLayoutLength.value = props.layout.length
+      initResponsiveFeatures()
     }
-  },
-  beforeMount () {
-    this.$emit('layout-before-mount', this.layout)
-  },
-  mounted () {
-    this.$emit('layout-mounted', this.layout)
-    this.$nextTick( () => {
-      validateLayout(this.layout)
 
-      this.originalLayout = this.layout
+    compact(props.layout, props.verticalCompact)
 
-      this.$nextTick( () => {
-        this.onWindowResize()
-        this.initResponsiveFeatures()
+    updateHeight()
 
-        addWindowEventListener('resize', this.onWindowResize.bind(this))
-        compact(this.layout, this.verticalCompact)
+    emit('update:layout', props.layout)
+    emitter.emit('recalculate-styles')
+  }
+}
+const findDifference = (layout: Layout, originalLayout: Layout): Layout => {
+  const uniqueResultOne = layout.filter(l => !originalLayout.some(ol => l.i === ol.i))
+  const uniqueResultTwo = originalLayout.filter(ol => !layout.some(l => ol.i === l.i))
 
-        this.$emit('update:layout', this.layout)
-        this.updateHeight()
+  return uniqueResultOne.concat(uniqueResultTwo)
+}
+const initResponsiveFeatures = (): void => {
+  layouts.value = Object.assign({}, props.responsiveLayouts)
+}
+const updateHeight = (): void => {
+  const height = containerHeight()
 
-        this.$nextTick( () => {
-          this.erd.listenTo(this.$refs.item, () => {
-            this.onWindowResize()
-          })
-        })
+  mergedStyle.value = { height }
+}
+const containerHeight = (): string | undefined => {
+  if (!props.autoSize) return
+
+  const [, m2] = props.margin
+
+  return `${bottom(props.layout) * (props.rowHeight + m2) + m2}px`
+}
+const onWindowResize = (): void => {
+  if (item.value) {
+    width.value = item.value.offsetWidth
+  }
+}
+const responsiveGridLayout = (): void => {
+  const newBreakpoint = getBreakpointFromWidth(props.breakpoints, width.value)
+  const newCols = getColsFromBreakpoint(newBreakpoint, props.cols)
+
+  if (lastBreakpoint.value && !layouts.value[lastBreakpoint.value]) {
+    layouts.value[lastBreakpoint.value] = cloneLayout(props.layout)
+  }
+
+  const layout = findOrGenerateResponsiveLayout(
+    originalLayout.value,
+    layouts.value,
+    props.breakpoints,
+    newBreakpoint,
+    lastBreakpoint.value,
+    newCols,
+    props.verticalCompact
+  )
+
+  layouts.value[newBreakpoint] = layout
+
+  if (lastBreakpoint.value !== newBreakpoint) {
+    emit('update:breakpoint', newBreakpoint, layout)
+  }
+
+  lastBreakpoint.value = newBreakpoint
+
+  emit('update:layout', layout)
+  emitter.emit('set-col-num', getColsFromBreakpoint(newBreakpoint, props.cols))
+}
+const onCreated = () => {
+  emitter.on('resize-event', resizeEvent)
+  emitter.on('drag-event', dragEvent)
+
+  emit('layout-created', props.layout)
+}
+const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
+  const layoutItem = getLayoutItem(props.layout, id)
+  const l = layoutItem ?? { ...layoutItemRequired }
+
+  let hasCollisions
+
+  if (props.preventCollision) {
+    const collisions = getAllCollisions(props.layout, { ...l, h, w }).filter(
+      layoutItem => layoutItem.i !== l.i
+    )
+
+    hasCollisions = collisions.length > 0
+
+    if (hasCollisions) {
+      let leastX = Infinity, leastY = Infinity
+
+      collisions.forEach(layoutItem => {
+        if (layoutItem.x > l.x) leastX = Math.min(leastX, layoutItem.x)
+
+        if (layoutItem.y > l.y) leastY = Math.min(leastY, layoutItem.y)
       })
-    })
-  },
-  methods: {
-    containerHeight (): string | undefined {
-      if (!this.autoSize) return
 
-      const [, m2] = this.margin
+      if (Number.isFinite(leastX)) l.w = leastX - l.x
 
-      return `${bottom(this.layout) * (this.rowHeight + m2) + m2}px`
-    },
-    dragEvent ([eventName, id, x, y, h, w]: GridLayoutEvent): void {
-      const layoutItem = getLayoutItem(this.layout, id)
-      const l = layoutItem ?? { ...layoutItemRequired }
-
-      if (eventName === 'dragmove' || eventName === 'dragstart') {
-        this.placeholder.i = id
-        this.placeholder.x = l.x
-        this.placeholder.y = l.y
-        this.placeholder.w = w
-        this.placeholder.h = h
-        this.$nextTick(() => {
-          this.isDragging = true
-        })
-      } else {
-        this.$nextTick(() => {
-          this.isDragging = false
-        })
-      }
-
-      this.$emit('update:layout', moveElement(this.layout, l, x, y, true, this.preventCollision))
-
-      compact(this.layout, this.verticalCompact)
-
-      this.eventBus.emit('recalculate-styles')
-      this.updateHeight()
-
-      if (eventName === 'dragend') {
-        this.$emit('update:layout', this.layout)
-      }
-    },
-    findDifference (layout: Layout, originalLayout: Layout): Layout {
-      const uniqueResultOne = layout.filter(l => !originalLayout.some(ol => l.i === ol.i))
-      const uniqueResultTwo = originalLayout.filter(ol => !layout.some(l => ol.i === l.i))
-
-      return uniqueResultOne.concat(uniqueResultTwo)
-    },
-    initResponsiveFeatures (): void {
-      this.layouts = Object.assign({}, this.responsiveLayouts)
-    },
-    layoutUpdate (): void {
-      if (this.layout && this.originalLayout) {
-        if (this.layout.length !== this.originalLayout.length) {
-          const diff = this.findDifference(this.layout, this.originalLayout)
-          // TODO
-
-          if (diff.length > 0) {
-            if (this.layout.length > this.originalLayout.length) {
-              this.originalLayout = this.originalLayout.concat(diff)
-            } else {
-              this.originalLayout = this.originalLayout.filter(obj => {
-                return !diff.some(obj2 => {
-                  return obj.i === obj2.i
-                })
-              })
-            }
-          }
-
-          this.lastLayoutLength = this.layout.length
-          this.initResponsiveFeatures()
-        }
-
-        compact(this.layout, this.verticalCompact)
-
-        this.updateHeight()
-
-        this.$emit('update:layout', this.layout)
-        this.eventBus.emit('recalculate-styles')
-      }
-    },
-    onWindowResize (): void {
-      if (this.$refs && this.$refs.item) {
-        this.width = this.$refs.item.offsetWidth
-      }
-    },
-    resizeEvent ([eventName, id, x, y, h, w]: GridLayoutEvent): void {
-      const layoutItem = getLayoutItem(this.layout, id)
-      const l = layoutItem ?? { ...layoutItemRequired }
-
-      let hasCollisions
-
-      if (this.preventCollision) {
-        const collisions = getAllCollisions(this.layout, { ...l, h, w }).filter(
-          layoutItem => layoutItem.i !== l.i
-        )
-
-        hasCollisions = collisions.length > 0
-
-        if (hasCollisions) {
-          let leastX = Infinity, leastY = Infinity
-
-          collisions.forEach(layoutItem => {
-            if (layoutItem.x > l.x) leastX = Math.min(leastX, layoutItem.x)
-
-            if (layoutItem.y > l.y) leastY = Math.min(leastY, layoutItem.y)
-          })
-
-          if (Number.isFinite(leastX)) l.w = leastX - l.x
-
-          if (Number.isFinite(leastY)) l.h = leastY - l.y
-        }
-      }
-
-      if (!hasCollisions) {
-        l.w = w
-        l.h = h
-      }
-
-      if (eventName === 'resizestart' || eventName === 'resizemove') {
-        this.placeholder.i = id
-        this.placeholder.x = x
-        this.placeholder.y = y
-        this.placeholder.w = l.w
-        this.placeholder.h = l.h
-
-        this.$nextTick(() => {
-          this.isDragging = true
-        })
-
-      } else {
-        this.$nextTick(() => {
-          this.isDragging = false
-        })
-      }
-
-      if (this.responsive) this.responsiveGridLayout()
-
-      compact(this.layout, this.verticalCompact)
-
-      this.eventBus.emit('recalculate-styles')
-      this.updateHeight()
-
-      if (eventName === 'resizeend') {
-        this.$emit('update:layout', this.layout)
-      }
-    },
-    responsiveGridLayout (): void {
-      const newBreakpoint = getBreakpointFromWidth(this.breakpoints, this.width)
-      const newCols = getColsFromBreakpoint(newBreakpoint, this.cols)
-
-      if (this.lastBreakpoint && !this.layouts[this.lastBreakpoint]) {
-        this.layouts[this.lastBreakpoint] = cloneLayout(this.layout)
-      }
-
-      const layout = findOrGenerateResponsiveLayout(
-        this.originalLayout,
-        this.layouts,
-        this.breakpoints,
-        newBreakpoint,
-        this.lastBreakpoint,
-        newCols,
-        this.verticalCompact
-      )
-
-      this.layouts[newBreakpoint] = layout
-
-      if (this.lastBreakpoint !== newBreakpoint) {
-        this.$emit('update:breakpoint', newBreakpoint, layout)
-      }
-
-      this.lastBreakpoint = newBreakpoint
-
-      this.$emit('update:layout', layout)
-      this.eventBus.emit('set-col-num', getColsFromBreakpoint(newBreakpoint, this.cols))
-    },
-    updateHeight (): void {
-      const height = this.containerHeight()
-
-      this.mergedStyle = { height }
+      if (Number.isFinite(leastY)) l.h = leastY - l.y
     }
   }
+
+  if (!hasCollisions) {
+    l.w = w
+    l.h = h
+  }
+
+  if (eventName === 'resizestart' || eventName === 'resizemove') {
+    placeholder.value.i = id
+    placeholder.value.x = x
+    placeholder.value.y = y
+    placeholder.value.w = l.w
+    placeholder.value.h = l.h
+
+    nextTick(() => {
+      isDragging.value = true
+    })
+
+  } else {
+    nextTick(() => {
+      isDragging.value = false
+    })
+  }
+
+  if (props.responsive) responsiveGridLayout()
+
+  compact(props.layout, props.verticalCompact)
+
+  emitter.emit('recalculate-styles')
+  updateHeight()
+
+  if (eventName === 'resizeend') {
+    emit('update:layout', props.layout)
+  }
+}
+const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
+  const layoutItem = getLayoutItem(props.layout, id)
+  const l = layoutItem ?? { ...layoutItemRequired }
+
+  if (eventName === 'dragmove' || eventName === 'dragstart') {
+    placeholder.value.i = id
+    placeholder.value.x = l.x
+    placeholder.value.y = l.y
+    placeholder.value.w = w
+    placeholder.value.h = h
+    nextTick(() => {
+      isDragging.value = true
+    })
+  } else {
+    nextTick(() => {
+      isDragging.value = false
+    })
+  }
+
+  emit('update:layout', moveElement(props.layout, l, x, y, true, props.preventCollision))
+
+  compact(props.layout, props.verticalCompact)
+
+  emitter.emit('recalculate-styles')
+  updateHeight()
+
+  if (eventName === 'dragend') {
+    emit('update:layout', props.layout)
+  }
+}
+
+// lifecycles
+onCreated()
+onBeforeUnmount(() => {
+  emitter.off('resize-event', resizeEvent)
+  emitter.off('drag-event', dragEvent)
+
+  removeWindowEventListener('resize', onWindowResize)
+
+  if (erd.value && item.value) {
+    erd.value.uninstall(item.value)
+  }
+})
+onBeforeMount(() => {
+  emit('layout-before-mount', props.layout)
+})
+onMounted(() => {
+  emit('layout-mounted', props.layout)
+  nextTick(() => {
+    validateLayout(props.layout)
+
+    originalLayout.value = props.layout
+
+    nextTick(() => {
+      onWindowResize()
+      initResponsiveFeatures()
+
+      addWindowEventListener('resize', onWindowResize.bind(this))
+      compact(props.layout, props.verticalCompact)
+
+      emit('update:layout', props.layout)
+      updateHeight()
+
+      nextTick(() => {
+        if (item.value) {
+          erd.value.listenTo(item.value, onWindowResize)
+        }
+      })
+    })
+  })
 })
 </script>
 
 <style>
-    .vue-grid-layout {
-        position: relative;
-        transition: height 200ms ease;
-    }
+.vue-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
 </style>

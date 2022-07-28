@@ -8,476 +8,470 @@
     <slot />
     <span
       v-if="resizableAndNotStatic"
-      :class="$options.resizableHandleClass"
+      :class="resizableHandleClass"
     />
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { emitterKey } from '@/types/symbols'
 import { getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 import interact from '@interactjs/interactjs'
-import { Breakpoints, BreakpointsKeys } from '@/types/helpers'
-import { GridItemClasses, GridItemData, GridItemPosition } from '@/types/components'
-import { PropType, defineComponent } from 'vue'
+import mitt from 'mitt'
+import { Breakpoints, BreakpointsKeys, Position, Transform } from '@/types/helpers'
+import { GridItemClasses, GridItemPosition, Inner } from '@/types/components'
+import { PropType, computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { createCoreData, getControlPosition } from '@/helpers/draggableUtils'
 import { setTopLeft, setTransform, stringReplacer } from '@/helpers/utils'
 
-export default defineComponent({
-  name: 'GridItem',
-  resizableHandleClass: 'vue-resizable-handle',
-  props: {
-    breakpointCols: {
-      type: Object as PropType<Breakpoints>,
-      required: true
-    },
-    colNum: {
-      type: Number,
-      required: true
-    },
-    containerWidth: {
-      type: Number,
-      required: true
-    },
-    h: {
-      type: Number,
-      required: true
-    },
-    i: {
-      type: String,
-      required: true
-    },
-    isDraggable: {
-      type: Boolean,
-      required: true
-    },
-    isResizable: {
-      type: Boolean,
-      required: true
-    },
-    lastBreakpoint: {
-      type: String as PropType<BreakpointsKeys>,
-      required: true
-    },
-    margin: {
-      type: Array as PropType<number[]>,
-      required: true
-    },
-    maxH: {
-      type: Number,
-      default: Infinity
-    },
-    maxRows: {
-      type: Number,
-      required: true
-    },
-    maxW: {
-      type: Number,
-      default: Infinity
-    },
-    minH: {
-      type: Number,
-      default: 1
-    },
-    minW: {
-      type: Number,
-      default: 1
-    },
-    rowHeight: {
-      type: Number,
-      required: true
-    },
-    static: {
-      type: Boolean,
-      default: false
-    },
-    useCssTransforms: {
-      type: Boolean,
-      required: true
-    },
-    w: {
-      type: Number,
-      required: true
-    },
-    x: {
-      type: Number,
-      required: true
-    },
-    y: {
-      type: Number,
-      required: true
+const props = defineProps({
+  breakpointCols: {
+    required: true,
+    type: Object as PropType<Breakpoints>
+  },
+  colNum: {
+    required: true,
+    type: Number
+  },
+  containerWidth: {
+    required: true,
+    type: Number
+  },
+  h: {
+    required: true,
+    type: Number
+  },
+  i: {
+    required: true,
+    type: String
+  },
+  isDraggable: {
+    required: true,
+    type: Boolean
+  },
+  isResizable: {
+    required: true,
+    type: Boolean
+  },
+  lastBreakpoint: {
+    required: true,
+    type: String as PropType<BreakpointsKeys>
+  },
+  margin: {
+    required: true,
+    type: Array as PropType<number[]>
+  },
+  maxH: {
+    default: Infinity,
+    type: Number
+  },
+  maxRows: {
+    required: true,
+    type: Number
+  },
+  maxW: {
+    default: Infinity,
+    type: Number
+  },
+  minH: {
+    default: 1,
+    type: Number
+  },
+  minW: {
+    default: 1,
+    type: Number
+  },
+  rowHeight: {
+    required: true,
+    type: Number
+  },
+  static: {
+    default: false,
+    type: Boolean
+  },
+  useCssTransforms: {
+    required: true,
+    type: Boolean
+  },
+  w: {
+    required: true,
+    type: Number
+  },
+  x: {
+    required: true,
+    type: Number
+  },
+  y: {
+    required: true,
+    type: Number
+  }
+})
+const emit = defineEmits(['container-resized', 'resize', 'resized', 'move', 'moved'])
+const item = ref<HTMLDivElement | null>(null)
+const emitter = inject(emitterKey, mitt())
+const resizableHandleClass = 'vue-resizable-handle'
+// data
+const cols = ref(props.colNum)
+const dragEventSet = ref(false)
+const dragging = ref<{ left?: number; top?: number }>({})
+const inner = ref<Inner<number>>({ h: props.h, w: props.w, x: props.x, y: props.y })
+const interactObj = ref<any>(null)
+const isDragging = ref(false)
+const isResizing = ref(false)
+const lastInner = ref<Inner<number>>({ h: NaN, w: NaN, x: NaN, y: NaN })
+const previousInner = ref<Inner<number>>({ h: NaN, w: NaN, x: NaN, y: NaN })
+const resizeEventSet = ref(false)
+const resizing = ref<{ height: number; width: number } | null>(null)
+const style = ref<Position | Transform | object>({})
+
+// computed
+const classObj = computed((): GridItemClasses => ({
+  'css-transforms': props.useCssTransforms,
+  'disable-user-select': isDragging.value,
+  'no-touch': isNoTouch.value,
+  resizing: isResizing.value,
+  static: props.static,
+  'vue-draggable-dragging': isDragging.value,
+  'vue-resizable': resizableAndNotStatic.value
+}))
+const isNoTouch = computed((): boolean => {
+  const draggableOrResizableAndNotStatic = (props.isDraggable || props.isResizable) && !props.static
+  const isAndroid = navigator.userAgent.toLowerCase().indexOf('android') !== -1
+
+  return draggableOrResizableAndNotStatic && isAndroid
+})
+const resizableAndNotStatic = computed((): boolean => props.isResizable && !props.static)
+
+watch(() => cols.value, () => {
+  tryMakeResizable()
+  emitContainerResized()
+})
+watch(() => props.containerWidth, () => {
+  tryMakeResizable()
+  emitContainerResized()
+})
+watch(() => props.h, value => {
+  inner.value.h = value
+  emitContainerResized()
+})
+watch(() => props.isDraggable, () => {
+  tryMakeResizable()
+})
+watch(() => props.isResizable, () => {
+  tryMakeResizable()
+})
+watch(() => props.maxH, () => {
+  tryMakeResizable()
+})
+watch(() => props.maxW, () => {
+  tryMakeResizable()
+})
+watch(() => props.minH, () => {
+  tryMakeResizable()
+})
+watch(() => props.minW, () => {
+  tryMakeResizable()
+})
+watch(() => props.rowHeight, () => {
+  emitContainerResized()
+})
+watch(() => props.static, () => {
+  tryMakeResizable()
+  tryMakeResizable()
+})
+watch(() => props.w, value => {
+  inner.value.w = value
+  createStyle()
+})
+watch(() => props.x, value => {
+  inner.value.x = value
+  createStyle()
+})
+watch(() => props.y, value => {
+  inner.value.y = value
+  createStyle()
+})
+
+const calcColWidth = (): number => {
+  const [m1] = props.margin
+
+  return (props.containerWidth - (m1 * (cols.value + 1))) / cols.value
+}
+const calcPosition = (x: number, y: number, w: number, h: number): GridItemPosition => {
+  const colWidth = calcColWidth()
+  const [m1, m2] = props.margin
+
+  return {
+    height: h === Infinity ? h : Math.round(props.rowHeight * h + Math.max(0, h - 1) * m2),
+    left: Math.round(colWidth * x + (x + 1) * m2),
+    top: Math.round(props.rowHeight * y + (y + 1) * m2),
+    width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * m1)
+  }
+}
+const calcWH = (height: number, width: number): { h: number; w: number } => {
+  const colWidth = calcColWidth()
+  const [m1, m2] = props.margin
+  const w = Math.round((width + m1) / (colWidth + m1))
+  const h = Math.round((height + m2) / (props.rowHeight + m2))
+
+  return {
+    h: Math.max(Math.min(h, props.maxRows - inner.value.y), 0),
+    w: Math.max(Math.min(w, cols.value - inner.value.x), 0)
+  }
+}
+const calcXY = (top: number, left: number): { x: number; y: number } => {
+  const colWidth = calcColWidth()
+  const [m1, m2] = props.margin
+  const x = Math.round((left - m1) / (colWidth + m1))
+  const y = Math.round((top - m2) / (props.rowHeight + m2))
+
+  return {
+    x: Math.max(Math.min(x, cols.value - inner.value.w), 0),
+    y: Math.max(Math.min(y, props.maxRows - inner.value.h), 0)
+  }
+}
+const createStyle = (): void => {
+  const pos = calcPosition(inner.value.x, inner.value.y, inner.value.w, inner.value.h)
+
+  if (props.x + props.w > cols.value) {
+    inner.value.x = 0
+    inner.value.w = (props.w > cols.value) ? cols.value : props.w
+  } else {
+    inner.value.x = props.x
+    inner.value.w = props.w
+  }
+
+  if (isDragging.value) {
+    pos.top = dragging.value.top ?? 0
+    pos.left = dragging.value.left ?? 0
+  }
+
+  if (isResizing.value) {
+    pos.width = resizing?.value?.width ?? 0
+    pos.height = resizing?.value?.height ?? 0
+  }
+
+  style.value = props.useCssTransforms
+    ? setTransform(pos.top, pos.left, pos.width, pos.height)
+    : setTopLeft(pos.top, pos.left, pos.width, pos.height)
+}
+const emitContainerResized = () => {
+  createStyle()
+
+  const styleProps = {} as { height: number; width: number }
+
+  for (const prop of ['width', 'height']) {
+    const val = style.value[prop]
+    const matches = val.match(/^(\d+)px$/)
+
+    if (!matches) return
+
+    // eslint-disable-next-line prefer-destructuring
+    styleProps[prop] = matches[1]
+  }
+
+  emit('container-resized', props.i, props.h, props.w, styleProps.height, styleProps.width)
+}
+const handleDrag = (event: any): void  => {
+  if (props.static) return
+  if (isResizing.value) return
+
+  const position = getControlPosition(event)
+
+  if (!position) return
+
+  const { x, y } = position
+
+  const newPosition = { left: 0, top: 0 }
+
+  switch (event.type) {
+    case 'dragstart': {
+      previousInner.value.x = inner.value.x
+      previousInner.value.y = inner.value.y
+
+      const parentRect = event.target.offsetParent.getBoundingClientRect()
+      const clientRect = event.target.getBoundingClientRect()
+
+      newPosition.left = clientRect.left - parentRect.left
+      newPosition.top = clientRect.top - parentRect.top
+
+      dragging.value = newPosition
+      isDragging.value = true
+      break
     }
-  },
-  emits: ['container-resized', 'resize', 'resized', 'move', 'moved'],
-  data (): GridItemData {
-    return {
-      cols: this.colNum,
-      dragEventSet: false,
-      dragging: {},
-      inner: { h: this.h, w: this.w, x: this.x, y: this.y },
-      interactObj: null,
-      isDragging: false,
-      isResizing: false,
-      lastInner: { h: NaN, w: NaN, x: NaN, y: NaN },
-      previousInner: { h: NaN, w: NaN, x: NaN, y: NaN },
-      resizeEventSet: false,
-      resizing: null,
-      style: {}
+    case 'dragend': {
+      if (!isDragging.value) return
+      const parentRect = event.target.offsetParent.getBoundingClientRect()
+      const clientRect = event.target.getBoundingClientRect()
+
+      newPosition.left = clientRect.left - parentRect.left
+      newPosition.top = clientRect.top - parentRect.top
+
+      dragging.value = {}
+      isDragging.value = false
+      break
     }
-  },
-  computed: {
-    classObj (): GridItemClasses {
-      return {
-        'css-transforms': this.useCssTransforms,
-        'disable-user-select': this.isDragging,
-        'no-touch': this.isNoTouch,
-        resizing: this.isResizing,
-        static: this.static,
-        'vue-draggable-dragging': this.isDragging,
-        'vue-resizable': this.resizableAndNotStatic
-      }
-    },
-    isNoTouch (): boolean {
-      const draggableOrResizableAndNotStatic = (this.isDraggable || this.isResizable) && !this.static
-      const isAndroid = navigator.userAgent.toLowerCase().indexOf('android') !== -1
+    case 'dragmove': {
+      const coreEvent = createCoreData(lastInner.value.x, lastInner.value.y, x, y)
 
-      return draggableOrResizableAndNotStatic && isAndroid
-    },
-    resizableAndNotStatic (): boolean {
-      return this.isResizable && !this.static
-    }
-  },
-  watch: {
-    cols () {
-      this.tryMakeResizable()
-      this.emitContainerResized()
-    },
-    containerWidth () {
-      this.tryMakeResizable()
-      this.emitContainerResized()
-    },
-    h (newVal) {
-      this.inner.h = newVal
-      this.emitContainerResized()
-    },
-    isDraggable () {
-      this.tryMakeDraggable()
-    },
-    isResizable () {
-      this.tryMakeResizable()
-    },
-    maxH () {
-      this.tryMakeResizable()
-    },
-    maxW () {
-      this.tryMakeResizable()
-    },
-    minH () {
-      this.tryMakeResizable()
-    },
-    minW () {
-      this.tryMakeResizable()
-    },
-    rowHeight () {
-      this.emitContainerResized()
-    },
-    static () {
-      this.tryMakeDraggable()
-      this.tryMakeResizable()
-    },
-    w (newVal) {
-      this.inner.w = newVal
-      this.createStyle()
-    },
-    x (newVal) {
-      this.inner.x = newVal
-      this.createStyle()
-    },
-    y (newVal) {
-      this.inner.y = newVal
-      this.createStyle()
-    }
-  },
-  created () {
-    this.eventBus.on('recalculate-styles', this.createStyle)
-    this.eventBus.on('set-col-num', this.setColNum)
-  },
-  beforeUnmount () {
-    this.eventBus.off('recalculate-styles', this.createStyle)
-    this.eventBus.off('set-col-num', this.setColNum)
+      newPosition.left = (dragging?.value?.left ?? 0) + coreEvent.deltaX
+      newPosition.top = (dragging?.value?.top ?? 0) + coreEvent.deltaY
 
-    if (this.interactObj) {
-      this.interactObj.unset()
-    }
-  },
-  mounted () {
-    this.cols = getColsFromBreakpoint(this.lastBreakpoint, this.breakpointCols)
-
-    this.tryMakeDraggable()
-    this.createStyle()
-  },
-  methods: {
-    calcColWidth (): number {
-      const [m1] = this.margin
-
-      return (this.containerWidth - (m1 * (this.cols + 1))) / this.cols
-    },
-    calcPosition (x: number, y: number, w: number, h: number): GridItemPosition {
-      const colWidth = this.calcColWidth()
-      const [m1, m2] = this.margin
-
-      return {
-        height: h === Infinity ? h : Math.round(this.rowHeight * h + Math.max(0, h - 1) * m2),
-        left: Math.round(colWidth * x + (x + 1) * m2),
-        top: Math.round(this.rowHeight * y + (y + 1) * m2),
-        width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * m1)
-      }
-    },
-    calcWH (height: number, width: number): { h: number; w: number } {
-      const colWidth = this.calcColWidth()
-      const [m1, m2] = this.margin
-      const w = Math.round((width + m1) / (colWidth + m1))
-      const h = Math.round((height + m2) / (this.rowHeight + m2))
-
-      return {
-        h: Math.max(Math.min(h, this.maxRows - this.inner.y), 0),
-        w: Math.max(Math.min(w, this.cols - this.inner.x), 0)
-      }
-    },
-    calcXY (top: number, left: number): { x: number; y: number } {
-      const colWidth = this.calcColWidth()
-      const [m1, m2] = this.margin
-      const x = Math.round((left - m1) / (colWidth + m1))
-      const y = Math.round((top - m2) / (this.rowHeight + m2))
-
-      return {
-        x: Math.max(Math.min(x, this.cols - this.inner.w), 0),
-        y: Math.max(Math.min(y, this.maxRows - this.inner.h), 0)
-      }
-    },
-    createStyle (): void {
-      const pos = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
-
-      if (this.x + this.w > this.cols) {
-        this.inner.x = 0
-        this.inner.w = (this.w > this.cols) ? this.cols : this.w
-      } else {
-        this.inner.x = this.x
-        this.inner.w = this.w
-      }
-
-      if (this.isDragging) {
-        pos.top = this.dragging.top ?? 0
-        pos.left = this.dragging.left ?? 0
-      }
-
-      if (this.isResizing) {
-        pos.width = this.resizing?.width ?? 0
-        pos.height = this.resizing?.height ?? 0
-      }
-
-      this.style = this.useCssTransforms
-        ? setTransform(pos.top, pos.left, pos.width, pos.height)
-        : setTopLeft(pos.top, pos.left, pos.width, pos.height)
-    },
-    emitContainerResized () {
-      this.createStyle()
-
-      const styleProps = {} as { height: number; width: number }
-
-      for (const prop of ['width', 'height']) {
-        const val = this.style[prop]
-        const matches = val.match(/^(\d+)px$/)
-
-        if (!matches) return
-
-        // eslint-disable-next-line prefer-destructuring
-        styleProps[prop] = matches[1]
-      }
-
-      this.$emit('container-resized', this.i, this.h, this.w, styleProps.height, styleProps.width)
-    },
-    handleDrag (event: any): void {
-      if (this.static) return
-      if (this.isResizing) return
-
-      const position = getControlPosition(event)
-
-      if (!position) return
-
-      const { x, y } = position
-
-      const newPosition = { left: 0, top: 0 }
-
-      switch (event.type) {
-        case 'dragstart': {
-          this.previousInner.x = this.inner.x
-          this.previousInner.y = this.inner.y
-
-          const parentRect = event.target.offsetParent.getBoundingClientRect()
-          const clientRect = event.target.getBoundingClientRect()
-
-          newPosition.left = clientRect.left - parentRect.left
-          newPosition.top = clientRect.top - parentRect.top
-
-          this.dragging = newPosition
-          this.isDragging = true
-          break
-        }
-        case 'dragend': {
-          if (!this.isDragging) return
-          const parentRect = event.target.offsetParent.getBoundingClientRect()
-          const clientRect = event.target.getBoundingClientRect()
-
-          newPosition.left = clientRect.left - parentRect.left
-          newPosition.top = clientRect.top - parentRect.top
-
-          this.dragging = {}
-          this.isDragging = false
-          break
-        }
-        case 'dragmove': {
-          const coreEvent = createCoreData(this.lastInner.x, this.lastInner.y, x, y)
-
-          newPosition.left = (this.dragging?.left ?? 0) + coreEvent.deltaX
-          newPosition.top = (this.dragging?.top ?? 0) + coreEvent.deltaY
-
-          this.dragging = newPosition
-          break
-        }
-      }
-
-      const pos = this.calcXY(newPosition.top, newPosition.left)
-
-      this.lastInner.x = x
-      this.lastInner.y = y
-
-      if (this.inner.x !== pos.x || this.inner.y !== pos.y) {
-        this.$emit('move', this.i, pos.x, pos.y)
-      }
-
-      if (event.type === 'dragend' && (this.previousInner.x !== this.inner.x || this.previousInner.y !== this.inner.y)) {
-        this.$emit('moved', this.i, pos.x, pos.y)
-      }
-
-      this.eventBus.emit('drag-event', [event.type, this.i, pos.x, pos.y, this.inner.h, this.inner.w])
-    },
-    handleResize (event: any): void {
-      if (this.static) return
-
-      const position = getControlPosition(event)
-
-      if (!position) return
-
-      const { x, y } = position
-      const newSize = { height: 0, width: 0 }
-
-      switch (event.type) {
-        case 'resizestart': {
-          this.previousInner.w = this.inner.w
-          this.previousInner.h = this.inner.h
-
-          const { height, width } = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
-
-          newSize.width = width
-          newSize.height = height
-
-          this.resizing = newSize
-          this.isResizing = true
-          break
-        }
-        case 'resizemove': {
-          const coreEvent = createCoreData(this.lastInner.x, this.lastInner.h, x, y)
-
-          newSize.width = (this.resizing?.width ?? 0) + coreEvent.deltaX
-          newSize.height = (this.resizing?.height ?? 0) + coreEvent.deltaY
-
-          this.resizing = newSize
-          this.isResizing = true
-          break
-        }
-        case 'resizeend': {
-          const { height, width } = this.calcPosition(this.inner.x, this.inner.y, this.inner.w, this.inner.h)
-
-          newSize.width = width
-          newSize.height = height
-
-          this.resizing = null
-          this.isResizing = false
-          break
-        }
-      }
-
-      const pos = this.calcWH(newSize.height, newSize.width)
-
-      if (pos.w < this.minW) pos.w = this.minW
-      if (pos.w > this.maxW) pos.w = this.maxW
-      if (pos.h < this.minH) pos.h = this.minH
-      if (pos.h > this.maxH) pos.h = this.maxH
-      if (pos.h < 1) pos.h = 1
-      if (pos.w < 1) pos.w = 1
-
-      this.lastInner.x = x
-      this.lastInner.h = y
-
-      if (this.inner.w !== pos.w || this.inner.h !== pos.h) {
-        this.$emit('resize', this.i, pos.h, pos.w, newSize.height, newSize.width)
-      }
-
-      if (event.type === 'resizeend' && (this.previousInner.w !== this.inner.w || this.previousInner.h !== this.inner.h)) {
-        this.$emit('resized', this.i, pos.h, pos.w, newSize.height, newSize.width)
-      }
-
-      this.eventBus.emit('resize-event', [event.type, this.i, this.inner.x, this.inner.y, pos.h, pos.w])
-    },
-    setColNum (colNum: number): void {
-      this.cols = colNum
-    },
-    tryMakeDraggable (): void {
-      if (!this.interactObj) {
-        this.interactObj = interact(this.$refs.item)
-      }
-
-      if (this.isDraggable && !this.static) {
-        this.interactObj.draggable({ ignoreFrom: 'a, button' })
-
-        if (!this.dragEventSet) {
-          this.dragEventSet = true
-          this.interactObj.on('dragstart dragmove dragend', this.handleDrag)
-        }
-      } else {
-        this.interactObj.draggable({ enabled: false })
-      }
-    },
-    tryMakeResizable (): void {
-      if (!this.interactObj) {
-        this.interactObj = interact(this.$refs.item)
-      }
-
-      if (this.isResizable && !this.static) {
-        const { resizableHandleClass } = this.$options
-        const selector = `.${stringReplacer(resizableHandleClass, ' ', '.')}`
-        const maximum = this.calcPosition(0, 0, this.maxW, this.maxH)
-        const minimum = this.calcPosition(0, 0, this.minW, this.minH)
-        const opts = {
-          edges: { bottom: selector, left: false, right: selector, top: false },
-          ignoreFrom: 'a, button',
-          restrictSize: {
-            max: { height: maximum.height, width: maximum.width },
-            min: { height: minimum.height, width: minimum.width }
-          }
-        }
-
-        this.interactObj.resizable(opts)
-
-        if (!this.resizeEventSet) {
-          this.resizeEventSet = true
-          this.interactObj.on('resizestart resizemove resizeend', this.handleResize)
-        }
-      } else {
-        this.interactObj.resizable({ enabled: false })
-      }
+      dragging.value = newPosition
+      break
     }
   }
+
+  const pos = calcXY(newPosition.top, newPosition.left)
+
+  lastInner.value.x = x
+  lastInner.value.y = y
+
+  if (inner.value.x !== pos.x || inner.value.y !== pos.y) {
+    emit('move', props.i, pos.x, pos.y)
+  }
+
+  if (event.type === 'dragend' && (previousInner.value.x !== inner.value.x || previousInner.value.y !== inner.value.y)) {
+    emit('moved', props.i, pos.x, pos.y)
+  }
+
+  emitter.emit('drag-event', [event.type, props.i, pos.x, pos.y, inner.value.h, inner.value.w])
+}
+const handleResize = (event: any): void => {
+  if (props.static) return
+
+  const position = getControlPosition(event)
+
+  if (!position) return
+
+  const { x, y } = position
+  const newSize = { height: 0, width: 0 }
+
+  switch (event.type) {
+    case 'resizestart': {
+      previousInner.value.w = inner.value.w
+      previousInner.value.h = inner.value.h
+
+      const { height, width } = calcPosition(inner.value.x, inner.value.y, inner.value.w, inner.value.h)
+
+      newSize.width = width
+      newSize.height = height
+
+      resizing.value = newSize
+      isResizing.value = true
+      break
+    }
+    case 'resizemove': {
+      const coreEvent = createCoreData(lastInner.value.x, lastInner.value.h, x, y)
+
+      newSize.width = (resizing?.value?.width ?? 0) + coreEvent.deltaX
+      newSize.height = (resizing?.value?.height ?? 0) + coreEvent.deltaY
+
+      resizing.value = newSize
+      isResizing.value = true
+      break
+    }
+    case 'resizeend': {
+      const { height, width } = calcPosition(inner.value.x, inner.value.y, inner.value.w, inner.value.h)
+
+      newSize.width = width
+      newSize.height = height
+
+      resizing.value = null
+      isResizing.value = false
+      break
+    }
+  }
+
+  const pos = calcWH(newSize.height, newSize.width)
+
+  if (pos.w < props.minW) pos.w = props.minW
+  if (pos.w > props.maxW) pos.w = props.maxW
+  if (pos.h < props.minH) pos.h = props.minH
+  if (pos.h > props.maxH) pos.h = props.maxH
+  if (pos.h < 1) pos.h = 1
+  if (pos.w < 1) pos.w = 1
+
+  lastInner.value.x = x
+  lastInner.value.h = y
+
+  if (inner.value.w !== pos.w || inner.value.h !== pos.h) {
+    emit('resize', props.i, pos.h, pos.w, newSize.height, newSize.width)
+  }
+
+  if (event.type === 'resizeend' && (previousInner.value.w !== inner.value.w || previousInner.value.h !== inner.value.h)) {
+    emit('resized', props.i, pos.h, pos.w, newSize.height, newSize.width)
+  }
+
+  emitter.emit('resize-event', [event.type, props.i, inner.value.x, inner.value.y, pos.h, pos.w])
+}
+const setColNum = (colNum: number): void => {
+  cols.value = colNum
+}
+const tryMakeDraggable = (): void => {
+  if (!interactObj.value && item.value) {
+    interactObj.value = interact(item.value)
+  }
+
+  if (props.isDraggable && !props.static) {
+    interactObj.value.draggable({ ignoreFrom: 'a, button' })
+
+    if (!dragEventSet.value) {
+      dragEventSet.value = true
+      interactObj.value.on('dragstart dragmove dragend', handleDrag)
+    }
+  } else {
+    interactObj.value.draggable({ enabled: false })
+  }
+}
+const tryMakeResizable = (): void => {
+  if (!interactObj.value) {
+    interactObj.value = interact(item.value)
+  }
+
+  if (props.isResizable && !props.static) {
+    const selector = `.${stringReplacer(resizableHandleClass, ' ', '.')}`
+    const maximum = calcPosition(0, 0, props.maxW, props.maxH)
+    const minimum = calcPosition(0, 0, props.minW, props.minH)
+    const opts = {
+      edges: { bottom: selector, left: false, right: selector, top: false },
+      ignoreFrom: 'a, button',
+      restrictSize: {
+        max: { height: maximum.height, width: maximum.width },
+        min: { height: minimum.height, width: minimum.width }
+      }
+    }
+
+    interactObj.value.resizable(opts)
+
+    if (!resizeEventSet.value) {
+      resizeEventSet.value = true
+      interactObj.value.on('resizestart resizemove resizeend', handleResize)
+    }
+  } else {
+    interactObj.value.resizable({ enabled: false })
+  }
+}
+const onCreate = () => {
+  emitter.on('recalculate-styles', createStyle)
+  emitter.on('set-col-num', setColNum)
+}
+// lifecycle
+
+onCreate()
+onBeforeUnmount(() => {
+  emitter.off('recalculate-styles', createStyle)
+  emitter.off('set-col-num', setColNum)
+
+  if (interactObj.value) {
+    interactObj.value.unset()
+  }
+})
+onMounted(() => {
+  cols.value = getColsFromBreakpoint(props.lastBreakpoint, props.breakpointCols)
+
+  tryMakeDraggable()
+  createStyle()
 })
 </script>
 
