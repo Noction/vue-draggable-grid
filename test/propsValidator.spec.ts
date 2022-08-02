@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import testsPayload from './testsPayload'
+import testsPayload from '../src/helpers/payload'
 import { breakpointsValidator, keysValidator, layoutValidator, marginValidator } from '@/helpers/propsValidators'
 import { describe, expect } from 'vitest'
 

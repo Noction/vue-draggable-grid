@@ -26,13 +26,15 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/**/*.spec.ts",
-    // js
-    "src/**/*.js"
   ],
   "exclude": [
     "./node_modules/*",
-    "./node_modules/**"
+    "./node_modules/**",
+    "test/*",
+    "src/types/*",
+    "src/helpers/*",
+    "src/main.ts",
+    "src/main.d.ts"
   ],
   "references": [
     {

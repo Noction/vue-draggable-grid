@@ -1,4 +1,4 @@
-import testsPayload from '../../test/testsPayload'
+import testsPayload from './payload'
 import { Breakpoints, Layout } from '@/types/helpers'
 
 const { keysValidatorPayload, layoutValidatorPayload } = testsPayload
