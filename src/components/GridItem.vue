@@ -122,7 +122,7 @@ const lastInner = ref<Inner<number>>({ h: NaN, w: NaN, x: NaN, y: NaN })
 const previousInner = ref<Inner<number>>({ h: NaN, w: NaN, x: NaN, y: NaN })
 const resizeEventSet = ref(false)
 const resizing = ref<{ height: number; width: number } | null>(null)
-const style = ref<Position | Transform | object>({})
+const style = ref<Transform | Position>({} as Transform | Position)
 
 // computed
 const classObj = computed((): GridItemClasses => ({
@@ -261,13 +261,12 @@ const emitContainerResized = () => {
   const styleProps = {} as { height: number; width: number }
 
   for (const prop of ['width', 'height']) {
-    const val = style.value[prop]
+    const val: string = style.value[prop as 'width' | 'height']
     const matches = val.match(/^(\d+)px$/)
 
     if (!matches) return
 
-    // eslint-disable-next-line prefer-destructuring
-    styleProps[prop] = matches[1]
+    styleProps[prop as 'width' | 'height'] = +matches[1]
   }
 
   emit('container-resized', props.i, props.h, props.w, styleProps.height, styleProps.width)
@@ -425,7 +424,7 @@ const tryMakeDraggable = (): void => {
   }
 }
 const tryMakeResizable = (): void => {
-  if (!interactObj.value) {
+  if (!interactObj.value && item.value) {
     interactObj.value = interact(item.value)
   }
 

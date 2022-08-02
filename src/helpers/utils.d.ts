@@ -1,0 +1,20 @@
+import { Layout, LayoutItem, Position, Transform, setPositionFnc } from '@/types/helpers';
+export declare const bottom: (layout: Layout) => number;
+export declare const cloneLayout: (layout: Layout) => Layout;
+export declare const cloneLayoutItem: (layoutItem: LayoutItem) => LayoutItem;
+export declare const collides: (l1: LayoutItem, l2: LayoutItem) => boolean;
+export declare const compact: (layout: Layout, verticalCompact: boolean) => Layout;
+export declare const compactItem: (compareWith: Layout, l: LayoutItem, verticalCompact: boolean) => LayoutItem;
+export declare const correctBounds: (layout: Layout, bounds: {
+    cols: number;
+}) => Layout;
+export declare const getAllCollisions: (layout: Layout, layoutItem: LayoutItem) => LayoutItem[];
+export declare const getFirstCollision: (layout: Layout, layoutItem: LayoutItem) => LayoutItem | void;
+export declare const getLayoutItem: (layout: Layout, id: string) => LayoutItem;
+export declare const getStatics: (layout: Layout) => LayoutItem[];
+export declare const moveElement: (layout: Layout, l: LayoutItem, x: number, y: number, isUserAction: boolean, preventCollision?: boolean) => Layout;
+export declare const moveElementAwayFromCollision: (layout: Layout, collidesWith: LayoutItem, itemToMove: LayoutItem, isUserAction?: boolean) => Layout;
+export declare const setTopLeft: setPositionFnc<Position>;
+export declare const setTransform: (top: number, left: number, width: number, height: number) => Transform;
+export declare const sortLayoutItemsByRowCol: (layout: Layout) => Layout;
+export declare const stringReplacer: (string: string, value: string, replacer: string) => string;

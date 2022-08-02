@@ -33,7 +33,6 @@ import {
   Breakpoints,
   BreakpointsKeys,
   Layout,
-  LayoutItemRequired,
   RecordBreakpoint,
   ResponsiveLayout
 } from '@/types/helpers'
@@ -56,10 +55,9 @@ import {
   compact,
   getAllCollisions,
   getLayoutItem,
-  moveElement,
-  validateLayout
+  moveElement
 } from '@/helpers/utils'
-import { breakpointsValidator, marginValidator } from '@/helpers/propsValidators'
+import { breakpointsValidator, layoutValidator, marginValidator } from '@/helpers/propsValidators'
 import { findOrGenerateResponsiveLayout, getBreakpointFromWidth, getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 
 const props = defineProps({
@@ -91,7 +89,8 @@ const props = defineProps({
   },
   layout: {
     required: true,
-    type: Array as PropType<Layout>
+    type: Array as PropType<Layout>,
+    validator: layoutValidator
   },
   margin: {
     default: () => [10, 10],
@@ -112,7 +111,15 @@ const props = defineProps({
   },
   responsiveLayouts: {
     default: () => ({}),
-    type: Object as PropType<ResponsiveLayout>
+    type: Object as PropType<ResponsiveLayout>,
+    validator: (value: ResponsiveLayout) => {
+      const validator = (Object.keys(value) as (keyof ResponsiveLayout)[])
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .map((k: BreakpointsKeys) => layoutValidator(value[k]))
+
+      return validator.includes(false)
+    }
   },
   rowHeight: {
     default: 150,
@@ -127,12 +134,14 @@ const props = defineProps({
     type: Boolean
   }
 })
-
+// emits
 const emit = defineEmits(['update:layout', 'layout-ready', 'update:breakpoint', 'layout-created', 'layout-before-mount', 'layout-mounted'])
+const emitter = inject(emitterKey, mitt())
 
+// options
 const layoutItemRequired = { h: 0, i: '-1', w: 0, x: 0, y: 0 }
 
-const emitter = inject(emitterKey, mitt())
+//data
 const erd = ref(elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }))
 const isDragging = ref(false)
 const lastBreakpoint = ref<BreakpointsKeys>('lg')
@@ -142,6 +151,7 @@ const mergedStyle = ref({})
 const originalLayout = ref(props.layout)
 const placeholder = ref({ h: 0, i: '-1', w: 0, x: 0, y: 0 })
 const width = ref(0)
+
 // refs
 const item = ref<HTMLDivElement | null>(null)
 
@@ -160,8 +170,6 @@ const gridItemProps = computed(() => ({
   useCssTransforms: props.useCssTransforms,
   width: width.value
 }))
-
-// created
 
 // watch
 watch(() => props.colNum, value => {
@@ -194,6 +202,7 @@ watch(() => width.value, (value, oldValue) => {
     updateHeight()
   })
 })
+
 // methods
 const layoutUpdate = (): void => {
   if (props.layout && originalLayout.value) {
@@ -396,8 +405,6 @@ onBeforeMount(() => {
 onMounted(() => {
   emit('layout-mounted', props.layout)
   nextTick(() => {
-    validateLayout(props.layout)
-
     originalLayout.value = props.layout
 
     nextTick(() => {

@@ -109,10 +109,6 @@ export const getLayoutItem = (layout: Layout, id: string): LayoutItem => layout.
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
 
-export const hyphenate = (str: string) => str.replace(hyphenateRE, '$1-$2').toLowerCase()
-
-export const hyphenateRE = /([a-z\d])([A-Z])/g
-
 export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number, isUserAction: boolean, preventCollision?: boolean): Layout => {
   if (l.static) return layout
 
@@ -203,28 +199,4 @@ export const sortLayoutItemsByRowCol = (layout: Layout): Layout => {
 
 export const stringReplacer = (string: string, value: string, replacer: string): string => {
   return string.trim().replace(value, replacer)
-}
-
-export const validateLayout = (layout: Layout, contextName?: string): void => {
-  contextName = contextName || 'Layout'
-
-  const subProps = ['x', 'y', 'w', 'h']
-
-  if (!Array.isArray(layout)) {
-    throw new Error(`${contextName} must be an array!`)
-  }
-
-  for (let i = 0; i < layout.length; i++) {
-    const item = layout[i]
-
-    for (let j = 0; j < subProps.length; j++) {
-      if (typeof item[subProps[j]] !== 'number') {
-        throw new Error(`VueGridLayout: ${contextName}[${i}].${subProps[j]} must be a number!`)
-      }
-    }
-
-    if (item.static !== undefined && typeof item.static !== 'boolean') {
-      throw new Error(`VueGridLayout: ${contextName}[${i}].static must be a boolean!`)
-    }
-  }
 }

@@ -40,12 +40,11 @@ export const getBreakpointFromWidth = (breakpoints: Breakpoints, width: number):
   return matching
 }
 
-export const getColsFromBreakpoint = (breakpoint: string, cols: Breakpoints): number => {
+export const getColsFromBreakpoint = (breakpoint: keyof Breakpoints, cols: Breakpoints): number => {
   if (!cols[breakpoint]) {
     throw new Error(`ResponsiveGridLayout: \`cols\` entry for breakpoint ${  breakpoint  } is missing!`)
   }
-
-  return cols[breakpoint]
+  return cols[breakpoint] ?? 0
 }
 
 export const sortBreakpoints = (breakpoints: Breakpoints): BreakpointsKeys[] => {
