@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import testsPayload from '../src/helpers/payload'
-import { breakpointsValidator, keysValidator, layoutValidator, marginValidator } from '@/helpers/propsValidators'
+import { breakpointsValidator, keysValidator, layoutValidator, marginValidator } from '../src/helpers/propsValidators'
 import { describe, expect } from 'vitest'
 
 describe('props validators', () => {
@@ -15,7 +15,7 @@ describe('props validators', () => {
   describe('keysValidator', () => {
     const { invalidKeys1, invalidKeys2, validKeys } = keysValidatorPayload
 
-    it('When validKeys instance of propsKKeys', () => {
+    it('When validKeys instance of propsKeys', () => {
       const result = keysValidator(validKeys, validKeys)
 
       expect(result).toBe(true)
@@ -131,6 +131,13 @@ describe('props validators', () => {
     })
 
     it('When layout with required keys is invalid 2', () => {
+      const data = Array.from({ length: 5 }, () => invalidRequiredLayout)
+      const result = layoutValidator([...data, invalidRequiredLayout])
+
+      expect(result).toBe(false)
+    })
+
+    it('When layout with required keys is invalid 3', () => {
       const data = Array.from({ length: 5 }, () => invalidRequiredLayout)
       const result = layoutValidator([...data, invalidRequiredLayout])
 

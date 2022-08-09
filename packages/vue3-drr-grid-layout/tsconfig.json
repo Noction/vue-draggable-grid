@@ -21,7 +21,7 @@
     "src/helpers/*.ts",
     "src/types/*.ts",
     "src/*.d.ts",
-    "src/components/*.vue",
+    "src/components/*.vue"
   ],
   "exclude": [
     "./node_modules/*",
