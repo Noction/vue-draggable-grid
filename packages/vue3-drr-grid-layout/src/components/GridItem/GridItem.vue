@@ -489,17 +489,6 @@ onMounted(() => {
     transition: all 200ms ease;
     transition-property: left, top, right;
     background-color: #f2f2f2;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 22;
-    }
 
     &.no-touch {
       touch-action: none;
