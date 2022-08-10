@@ -32,7 +32,7 @@ export default {
       moved: true,
       static: false
     },
-    validRequiredLayout: { h: 0, i: '-1', w: 0, x: 0, y: 0 }
+    validRequiredLayout: { h: 0, i: -1, w: 0, x: 0, y: 0 }
   },
   marginValidatorPayload: {
     invalidMargin1: [0, 0, 0],

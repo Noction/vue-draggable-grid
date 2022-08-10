@@ -48,7 +48,7 @@ const props = defineProps({
   },
   i: {
     required: true,
-    type: String
+    type: Number
   },
   isDraggable: {
     required: true,
@@ -160,7 +160,7 @@ watch(() => props.h, value => {
   emitContainerResized()
 })
 watch(() => props.isDraggable, () => {
-  tryMakeResizable()
+  tryMakeDraggable()
 })
 watch(() => props.isResizable, () => {
   tryMakeResizable()
@@ -182,7 +182,7 @@ watch(() => props.rowHeight, () => {
 })
 watch(() => props.static, () => {
   tryMakeResizable()
-  tryMakeResizable()
+  tryMakeDraggable()
 })
 watch(() => props.w, value => {
   inner.value.w = value
@@ -473,7 +473,9 @@ onBeforeUnmount(() => {
   }
 })
 onMounted(() => {
-  cols.value = getColsFromBreakpoint(props.lastBreakpoint, props.breakpointCols)
+  if (props.lastBreakpoint) {
+    cols.value = getColsFromBreakpoint(props.lastBreakpoint, props.breakpointCols)
+  }
 
   tryMakeDraggable()
   createStyle()
@@ -487,6 +489,17 @@ onMounted(() => {
     transition: all 200ms ease;
     transition-property: left, top, right;
     background-color: #f2f2f2;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 22;
+    }
 
     &.no-touch {
       touch-action: none;

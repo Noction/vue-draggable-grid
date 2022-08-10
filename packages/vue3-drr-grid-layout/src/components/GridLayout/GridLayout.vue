@@ -73,7 +73,7 @@ const props = defineProps({
     validator: breakpointsValidator
   },
   colNum: {
-    default: 12,
+    required: true,
     type: Number
   },
   cols: {
@@ -144,17 +144,17 @@ const emitter = mitt<Events>()
 provide(emitterKey, emitter)
 
 // options
-const layoutItemRequired = { h: 0, i: '-1', w: 0, x: 0, y: 0 }
+const layoutItemRequired = { h: 0, i: -1, w: 0, x: 0, y: 0 }
 
 //data
 const erd = ref(elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }))
 const isDragging = ref(false)
-const lastBreakpoint = ref<BreakpointsKeys>('lg')
+const lastBreakpoint = ref<BreakpointsKeys>('')
 const lastLayoutLength = ref(0)
 const layouts = ref<RecordBreakpoint<Layout>>({})
 const mergedStyle = ref({})
 const originalLayout = ref(props.layout)
-const placeholder = ref({ h: 0, i: '-1', w: 0, x: 0, y: 0 })
+const placeholder = ref({ h: 0, i: -1, w: 0, x: 0, y: 0 })
 const width = ref(0)
 
 // refs
@@ -331,7 +331,7 @@ const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   }
 
   if (eventName === 'resizestart' || eventName === 'resizemove') {
-    placeholder.value.i = id
+    placeholder.value.i = +id
     placeholder.value.x = x
     placeholder.value.y = y
     placeholder.value.w = l.w
@@ -363,7 +363,7 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   const l = layoutItem ?? { ...layoutItemRequired }
 
   if (eventName === 'dragmove' || eventName === 'dragstart') {
-    placeholder.value.i = id
+    placeholder.value.i = +id
     placeholder.value.x = l.x
     placeholder.value.y = l.y
     placeholder.value.w = w

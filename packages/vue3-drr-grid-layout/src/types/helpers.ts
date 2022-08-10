@@ -1,6 +1,6 @@
 export type Breakpoints = RecordBreakpoint<number>
 
-export type BreakpointsKeys = 'lg' | 'md' | 'sm' | 'xs' | 'xxs'
+export type BreakpointsKeys = 'lg' | 'md' | 'sm' | 'xs' | 'xxs' | ''
 
 export type Layout = LayoutItem[]
 
@@ -17,7 +17,7 @@ export type LayoutItemOptional = {
   isResizable?: boolean
 }
 
-export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: string }
+export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: number }
 
 export type RecordBreakpoint<Type> = Partial<Record<BreakpointsKeys, Type>>
 

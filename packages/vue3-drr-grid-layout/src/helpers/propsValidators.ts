@@ -16,50 +16,7 @@ export const keysValidator = (requiredKeys: string[], propsKeys: string[]): bool
   return propsKeys.length >= requiredKeys.length && coincidenceKeys.length === requiredKeys.length
 }
 
-const x = [{
-  _listeners: [],
-  x: 0,
-  y: 0,
-  w: 1,
-  h: 1,
-  i: 1,
-  _records: -1,
-  _timeSlug: null,
-  _meta: {},
-  _parameters: {},
-  _options: {
-    legend: {
-      align: 'left',
-      enabled: true,
-      floating: false,
-      useHtml: true,
-      verticalAlign: 'bottom'
-    },
-    measure: 'bits',
-    stacked: false,
-    type: 'area'
-  },
-  _additional: {
-    device: [],
-    site: []
-  },
-  _tokens: {},
-  _busy: false,
-  _error: '',
-  _placeholder: false,
-  _original: {
-    h: 1,
-    id: 1,
-    x: 0,
-    y: 0,
-    w: 1
-  },
-  moved: false
-}]
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-export const layoutValidator = (layout: Layout = x) => {
+export const layoutValidator = (layout: Layout) => {
   const { validOptionalLayout, validRequiredLayout } = layoutValidatorPayload
   const validLayout = { ...validRequiredLayout, ...validOptionalLayout }
   const requiredKeys = Object.keys(validRequiredLayout)
@@ -71,7 +28,7 @@ export const layoutValidator = (layout: Layout = x) => {
     const layoutItemKeys = (Object.keys(l) as (keyof typeof l)[])
 
     return layoutItemKeys
-      .map(k => k === 'i' ? !isNaN(parseInt(l.i)) : validLayout[k] ? typeof l[k] === typeof validLayout[k] : true)
+      .map(k => validLayout[k] ? typeof l[k] === typeof validLayout[k] : true)
       .includes(false)
   })
 

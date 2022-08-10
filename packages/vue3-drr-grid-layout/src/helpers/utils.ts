@@ -106,7 +106,7 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: string): LayoutItem => layout.filter(l => l.i === id)[0]
+export const getLayoutItem = (layout: Layout, id: string): LayoutItem => layout.filter(l => l.i === +id)[0]
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
 
@@ -159,7 +159,7 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
   if (isUserAction) {
     const fakeItem: LayoutItem = {
       h: itemToMove.h,
-      i: '-1',
+      i: -1,
       w: itemToMove.w,
       x: itemToMove.x,
       y: Math.max(collidesWith.y - itemToMove.h, 0)
