@@ -11,16 +11,16 @@ Rewrote to TypeScript, Composition API and migrated to Vue3
 
 ### Usage
 ```vue
-    <template>
-      <grid-layout
-        v-model:layout="layout"
-        :col-num="12"
-        :row-height="30"
-      >
-        <template #item="{ item }">
-          {{ item.i }}
-        </template>
-      </grid-layout>
+  <template>
+    <grid-layout
+      v-model:layout="layout"
+      :col-num="12"
+      :row-height="30"
+    >
+      <template #item="{ item }">
+        {{ item.i }}
+      </template>
+    </grid-layout>
   </template>
   <script>
     export default {
