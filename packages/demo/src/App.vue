@@ -4,9 +4,7 @@
   </button>
   <grid-layout
     v-model:layout="layout"
-    :responsive-layouts="responsiveLayouts"
     :col-num="colNum"
-    responsive
     @item-resize="containerResized"
   >
     <template #item="slotProps">

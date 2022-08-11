@@ -12,7 +12,6 @@
     <grid-item
       v-for="layoutItem in layout"
       :key="layoutItem.i"
-      class="item"
       v-bind="{ ...gridItemProps, ...layoutItem }"
       @drag-event="dragEvent"
       @resize-event="resizeEvent"

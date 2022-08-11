@@ -23,6 +23,7 @@ export const cloneLayout = (layout: Layout): Layout => {
   for (let i = 0; i < layout.length; i++) {
     newLayout[i] = cloneLayoutItem(layout[i])
   }
+
   return newLayout
 }
 
