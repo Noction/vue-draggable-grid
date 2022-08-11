@@ -274,7 +274,13 @@ const emitContainerResized = () => {
     styleProps[prop as 'width' | 'height'] = +matches[1]
   }
 
-  emit('container-resized', props.i, props.h, props.w, styleProps.height, styleProps.width)
+  emit('container-resized', {
+    h: props.h,
+    height: styleProps.height,
+    i: props.i,
+    w: props.w,
+    width: styleProps.width
+  })
 }
 const handleDrag = (event: any): void  => {
   if (props.static) return

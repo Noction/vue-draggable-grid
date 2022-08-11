@@ -16,6 +16,10 @@
       v-bind="{ ...gridItemProps, ...layoutItem }"
       @drag-event="dragEvent"
       @resize-event="resizeEvent"
+      @container-resized="emit('container-resized', $event)"
+      @resize="emit('item-resize', $event)"
+      @move="emit('item-move', $event)"
+      @moved="emit('item-moved', $event)"
     >
       <slot
         name="item"
@@ -121,7 +125,7 @@ const props = defineProps({
 
       const validator = layoutKeys.map((k: BreakpointsKeys) => layoutValidator(value[k]))
 
-      return validator.includes(false)
+      return !validator.includes(false)
     }
   },
   rowHeight: {
@@ -138,7 +142,19 @@ const props = defineProps({
   }
 })
 // emits
-const emit = defineEmits(['update:layout', 'layout-ready', 'update:breakpoint', 'layout-created', 'layout-before-mount', 'layout-mounted'])
+const emit = defineEmits([
+  'update:layout',
+  'layout-ready',
+  'update:breakpoint',
+  'layout-created',
+  'layout-before-mount',
+  'layout-mounted',
+  'container-resized',
+  'item-resize',
+  'item-resized',
+  'item-move',
+  'item-moved'
+])
 const emitter = mitt<Events>()
 
 provide(emitterKey, emitter)
@@ -358,6 +374,7 @@ const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
     emit('update:layout', props.layout)
   }
 }
+
 const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   const layoutItem = getLayoutItem(props.layout, id)
   const l = layoutItem ?? { ...layoutItemRequired }
