@@ -1,37 +1,39 @@
 <template>
-  <div
-    ref="item"
-    class="vue-grid-layout"
-    :style="mergedStyle"
-  >
-    <grid-item
-      v-show="isDragging"
-      class="vue-grid-placeholder"
-      v-bind="{ ...gridItemProps, ...placeholder }"
-    />
-    <grid-item
-      v-for="layoutItem in layout"
-      :key="layoutItem.i"
-      v-bind="{ ...gridItemProps, ...layoutItem }"
-      @drag-event="dragEvent"
-      @resize-event="resizeEvent"
-      @container-resized="emit('container-resized', $event)"
-      @resize="emit('item-resize', $event)"
-      @move="emit('item-move', $event)"
-      @moved="emit('item-moved', $event)"
+  <div>
+    <div
+      ref="wrapper"
+      class="vue-grid-layout"
+      :style="mergedStyle"
     >
-      <slot
-        name="item"
-        :item="layoutItem"
+      <grid-item
+        v-show="isDragging"
+        class="vue-grid-placeholder"
+        v-bind="{ ...gridItemProps, ...placeholder }"
       />
-    </grid-item>
+      <grid-item
+        v-for="layoutItem in layout"
+        :key="layoutItem.i"
+        v-bind="{ ...gridItemProps, ...layoutItemOptional(layoutItem) }"
+        :observer="observer"
+        @drag-event="dragEvent"
+        @resize-event="resizeEvent"
+        @container-resized="emit('container-resized', $event)"
+        @resize="emit('item-resize', $event)"
+        @move="emit('item-move', $event)"
+        @moved="emit('item-moved', $event)"
+      >
+        <slot
+          name="item"
+          :item="layoutItem"
+        />
+      </grid-item>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Events } from '../../types/globals'
 import GridItem from '../GridItem/GridItem.vue'
-import { GridLayoutEvent } from '../../types/components'
 import elementResizeDetectorMaker from 'element-resize-detector'
 import { emitterKey } from '../../types/symbols'
 import mitt from 'mitt'
@@ -42,6 +44,7 @@ import {
   RecordBreakpoint,
   ResponsiveLayout
 } from '../../types/helpers'
+import { GridLayoutEvent, IntersectionObserverConfig } from '../../types/components'
 import {
   PropType,
   computed,
@@ -51,7 +54,9 @@ import {
   onBeforeMount,
   onBeforeUnmount,
   onMounted,
-  provide, ref, watch
+  provide,
+  ref,
+  watch
 } from 'vue'
 import { addWindowEventListener, removeWindowEventListener } from '../../helpers/DOM'
 import {
@@ -62,7 +67,12 @@ import {
   getLayoutItem,
   moveElement
 } from '../../helpers/utils'
-import { breakpointsValidator, layoutValidator, marginValidator } from '../../helpers/propsValidators'
+import {
+  breakpointsValidator,
+  intersectionObserverConfigValidator,
+  layoutValidator,
+  marginValidator
+} from '../../helpers/propsValidators'
 import { findOrGenerateResponsiveLayout, getBreakpointFromWidth, getColsFromBreakpoint } from '../../helpers/responsiveUtils'
 
 const props = defineProps({
@@ -83,6 +93,11 @@ const props = defineProps({
     default: () => ({ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }),
     type: Object as PropType<Breakpoints>,
     validator: breakpointsValidator
+  },
+  intersectionObserverConfig: {
+    default: () => ({ root: null, rootMargin: '8px', threshold: 0.40 }),
+    type: Object as PropType<IntersectionObserverConfig>,
+    validator: intersectionObserverConfigValidator
   },
   isDraggable: {
     default: true,
@@ -135,6 +150,10 @@ const props = defineProps({
     default: true,
     type: Boolean
   },
+  useObserver: {
+    default: false,
+    type: Boolean
+  },
   verticalCompact: {
     default: true,
     type: Boolean
@@ -152,7 +171,8 @@ const emit = defineEmits([
   'item-resize',
   'item-resized',
   'item-move',
-  'item-moved'
+  'item-moved',
+  'intersection-observer'
 ])
 const emitter = mitt<Events>()
 
@@ -160,6 +180,7 @@ provide(emitterKey, emitter)
 
 // options
 const layoutItemRequired = { h: 0, i: -1, w: 0, x: 0, y: 0 }
+const layoutItemOptionalKeys = ['minW', 'minH', 'maxW', 'maxH', 'moved', 'static', 'isDraggable', 'isResizable']
 
 //data
 const erd = ref(elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }))
@@ -171,9 +192,9 @@ const mergedStyle = ref({})
 const originalLayout = ref(props.layout)
 const placeholder = ref({ h: 0, i: -1, w: 0, x: 0, y: 0 })
 const width = ref(0)
-
+let observer: IntersectionObserver
 // refs
-const item = ref<HTMLDivElement | null>(null)
+const wrapper = ref<HTMLDivElement | null>(null)
 
 // computed
 const gridItemProps = computed(() => ({
@@ -224,6 +245,27 @@ watch(() => width.value, (value, oldValue) => {
 })
 
 // methods
+const observerCallback = entries => {
+  entries.forEach(({ target, isIntersecting }) => {
+
+    if (isIntersecting) {
+      emit('intersection-observer', target.__INTERSECTION_OBSERVER_INDEX__)
+      observer.unobserve(target)
+      return
+    }
+  })
+}
+const layoutItemOptional = (props: { [key: string]: any }) => {
+  const requiredKeys = Object.keys(layoutItemRequired)
+
+  return (Object.keys(props) as (keyof typeof props)[])
+    .reduce((acc, val) => {
+      if (layoutItemOptionalKeys.includes(val) || requiredKeys.includes(val)) {
+        acc[val] = props[val]
+      }
+      return acc
+    }, {})
+}
 const layoutUpdate = (): void => {
   if (props.layout && originalLayout.value) {
     if (props.layout.length !== originalLayout.value.length) {
@@ -276,8 +318,8 @@ const containerHeight = (): string | undefined => {
   return `${bottom(props.layout) * (props.rowHeight + m2) + m2}px`
 }
 const onWindowResize = (): void => {
-  if (item.value) {
-    width.value = item.value.offsetWidth
+  if (wrapper.value) {
+    width.value = wrapper.value.offsetWidth
   }
 }
 const responsiveGridLayout = (): void => {
@@ -410,13 +452,14 @@ onCreated()
 onBeforeUnmount(() => {
   removeWindowEventListener('resize', onWindowResize)
 
-  if (erd.value && item.value) {
-    erd.value.uninstall(item.value)
+  if (erd.value && wrapper.value) {
+    erd.value.uninstall(wrapper.value)
   }
 })
 onBeforeMount(() => {
   emit('layout-before-mount', props.layout)
 })
+
 onMounted(() => {
   emit('layout-mounted', props.layout)
   nextTick(() => {
@@ -433,8 +476,12 @@ onMounted(() => {
       updateHeight()
 
       nextTick(() => {
-        if (item.value) {
-          erd.value.listenTo(item.value, onWindowResize)
+        if (wrapper.value) {
+          erd.value.listenTo(wrapper.value, onWindowResize)
+        }
+
+        if (props.useObserver) {
+          observer = new IntersectionObserver(observerCallback, props.intersectionObserverConfig)
         }
       })
     })

@@ -98,8 +98,17 @@ cols: object = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }
 responsiveLayouts: object = {}
 ```
 
+### Intersection observer grid layout props
+[Documentation](https://developer.mozilla.org/ru/docs/Web/API/Intersection_Observer_API)
+```js
+// To enable intersection observer mode, the useObserver prop must be true.
+useObserver: boolean = false
+// Intersection observer config
+intersectionObserverConfig: object = { root: null, rootMargin: '8px', threshold: 0.40 }
+```
+
 ### Grid layout emits
-- **@container-resized**="({ i, h, w, height, width }) => {}"
+- **@container-resized**
     * **When layout container was resized**
 ```ts
     {
@@ -110,7 +119,7 @@ responsiveLayouts: object = {}
         width: number // grid item width
      }
 ```
-- **@resize**="(i, h, w, newHeight, newWidth) => {}"
+- **@resize**
     * **Grid item resize event**
 ```ts
     i: number // grid item index
@@ -119,7 +128,7 @@ responsiveLayouts: object = {}
     newHeight: number // grid item height
     newWidth: number // grid item width   
 ```
-- **@resized**="(i, h, w, newHeight, newWidth) => {}"
+- **@resized**
     * **Grid item resizeend event**
 ```ts
     i: number // grid item index
@@ -128,18 +137,45 @@ responsiveLayouts: object = {}
     newHeight: number // grid item height
     newWidth: number // grid item width   
 ```
-- **@move**="(i, x, y) => {}"
+- **@move**
     * **Grid item drag event**
 ```ts
     i: number // grid item index
     x: number // grid item x position
     y: number // grid item y position 
 ```
-- **@moved**="(i, x, y) => {}"
+- **@moved**
     * **Grid item dragend event**
 ```ts
     i: number // grid item index
     x: number // grid item x position
     y: number // grid item y position 
 ``` 
-
+- **@update:layout**
+  * **Update layout, you can use v-model:layout="layout"**
+```ts
+    layout: Layout // see props
+``` 
+- **@layout-ready**
+  * **When layout is ready**
+```ts
+    layout: Layout // see props
+``` 
+- **@update:breakpoint**
+  * **Update breakpoints, you can use v-model:breakpoint="layout"**
+```ts
+    newBreakpoint: Breakpoints // see props
+    layout: Layout // see props
+``` 
+- **Layout life cycles**
+  * **@layout-created**
+  * **@layout-before-mount**
+  * **@layout-mounted**
+```ts
+    layout: Layout // see props
+```
+- **@intersection-observer**
+  * **When grid item appeared in the viewport**
+```ts
+  index: number // grid item index
+``` 

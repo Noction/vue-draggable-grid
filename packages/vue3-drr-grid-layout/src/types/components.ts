@@ -20,3 +20,5 @@ export interface GridItemPosition {
 export type GridLayoutEvent = [string, string, number, number, number, number]
 
 export type Inner<Type> = Record<InnerKeys, Type>
+
+export type IntersectionObserverConfig = IntersectionObserverInit

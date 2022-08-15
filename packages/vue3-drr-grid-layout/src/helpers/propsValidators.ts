@@ -1,3 +1,4 @@
+import { IntersectionObserverConfig } from '../types/components'
 import testsPayload from './payload'
 import { Breakpoints, Layout } from '../types/helpers'
 
@@ -8,6 +9,13 @@ export const breakpointsValidator = (cols: Breakpoints): boolean => {
   const colsValues = propColsKeys.map(k => typeof cols[k] === 'number')
 
   return keysValidator(keysValidatorPayload.validKeys, propColsKeys) && colsValues.indexOf(false) === -1
+}
+
+export const intersectionObserverConfigValidator = (config: IntersectionObserverConfig) => {
+  const keys: (keyof IntersectionObserverConfig)[] = ['root', 'rootMargin', 'threshold']
+  const configKeys = (Object.keys(config) as (keyof IntersectionObserverConfig)[])
+
+  return !configKeys.map(k => keys.includes(k)).includes(false)
 }
 
 export const keysValidator = (requiredKeys: string[], propsKeys: string[]): boolean => {

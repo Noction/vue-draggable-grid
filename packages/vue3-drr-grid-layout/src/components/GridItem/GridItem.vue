@@ -24,7 +24,11 @@ import {
   PropType,
   computed,
   inject,
-  onBeforeUnmount, onMounted, reactive, ref, watch
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch
 } from 'vue'
 import { createCoreData, getControlPosition } from '../../helpers/draggableUtils'
 import { setTopLeft, setTransform, stringReplacer } from '../../helpers/utils'
@@ -85,6 +89,10 @@ const props = defineProps({
   minW: {
     default: 1,
     type: Number
+  },
+  observer: {
+    default: undefined,
+    type: [IntersectionObserver, undefined]
   },
   rowHeight: {
     required: true,
@@ -147,6 +155,12 @@ const isNoTouch = computed((): boolean => {
 })
 const resizableAndNotStatic = computed((): boolean => props.isResizable && !props.static)
 
+watch(() => props.observer, () => {
+  if (props.observer && item.value) {
+    props.observer.observe(item.value)
+    item.value.__INTERSECTION_OBSERVER_INDEX__ = props.i
+  }
+})
 watch(() => cols.value, () => {
   tryMakeResizable()
   emitContainerResized()
@@ -476,6 +490,10 @@ onBeforeUnmount(() => {
 
   if (interactObj.value) {
     interactObj.value.unset()
+  }
+
+  if (props.observer) {
+    props.observer.unobserve(item.value)
   }
 })
 onMounted(() => {
