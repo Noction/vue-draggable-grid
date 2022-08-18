@@ -172,7 +172,8 @@ const emit = defineEmits([
   'item-resized',
   'item-move',
   'item-moved',
-  'intersection-observer'
+  'intersection-observe',
+  'intersection-unobserve'
 ])
 const emitter = mitt<Events>()
 
@@ -249,10 +250,11 @@ const observerCallback = entries => {
   entries.forEach(({ target, isIntersecting }) => {
 
     if (isIntersecting) {
-      emit('intersection-observer', target.__INTERSECTION_OBSERVER_INDEX__)
-      observer.unobserve(target)
+      emit('intersection-observe', target.__INTERSECTION_OBSERVER_INDEX__)
       return
     }
+
+    emit('intersection-unobserve', target.__INTERSECTION_OBSERVER_INDEX__)
   })
 }
 const layoutItemOptional = (props: { [key: string]: any }) => {

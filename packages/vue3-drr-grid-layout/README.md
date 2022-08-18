@@ -174,8 +174,13 @@ intersectionObserverConfig: object = { root: null, rootMargin: '8px', threshold:
 ```ts
     layout: Layout // see props
 ```
-- **@intersection-observer**
+- **@intersection-observe**
   * **When grid item appeared in the viewport**
+```ts
+  index: number // grid item index
+``` 
+- **@intersection-unobserve**
+  * **When grid item is missing in the viewport**
 ```ts
   index: number // grid item index
 ``` 
