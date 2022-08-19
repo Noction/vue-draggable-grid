@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     lib: {
-      entry: path.resolve(__dirname, './src/index.ts'),
+      entry: path.resolve(__dirname, './src/components/index.ts'),
       fileName: 'vue3-drr-grid-layout',
       name: 'Vue3DRRGridLayout'
     },

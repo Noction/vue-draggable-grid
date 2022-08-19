@@ -35,7 +35,7 @@
   "module": "dist/vue3-drr-grid-layout.mjs",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "vite build && tsc -d --emitDeclarationOnly && vue-typegen gen -s src -o dist",
+    "build": "cross-env NODE_ENV=production vite build && tsc -d --emitDeclarationOnly && vue-typegen gen -s src -o dist",
     "preview": "vite preview",
     "lint:es": "eslint \"src/**/*.{js,ts,vue}\" --fix --color",
     "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix",
@@ -69,6 +69,7 @@
     "vue-eslint-parser": "^9.0.3",
     "vue-template-compiler": "^2.7.8",
     "vue-tsc": "^0.39.0",
-    "vue-typegen": "^0.2.0"
+    "vue-typegen": "^0.2.0",
+    "cross-env": "^7.0.3"
   }
 }
