@@ -256,12 +256,10 @@ const observerCallback = entries => {
 
     if (isIntersecting) {
       observerItems.observe.push(target.__INTERSECTION_OBSERVER_INDEX__)
-      // emit('intersection-observe', target.__INTERSECTION_OBSERVER_INDEX__)
       return
     }
 
     observerItems.unobserve.push(target.__INTERSECTION_OBSERVER_INDEX__)
-    // emit('intersection-unobserve', target.__INTERSECTION_OBSERVER_INDEX__)
   })
 
   emit('intersection-observe', observerItems.observe)
