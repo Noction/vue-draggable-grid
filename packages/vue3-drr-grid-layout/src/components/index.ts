@@ -1,5 +1,5 @@
-import GridItem from './components/GridItem/GridItem.vue'
-import GridLayout from './components/GridLayout/GridLayout.vue'
+import GridItem from './GridItem/GridItem.vue'
+import GridLayout from './GridLayout/GridLayout.vue'
 
 const components = {
   GridItem,
