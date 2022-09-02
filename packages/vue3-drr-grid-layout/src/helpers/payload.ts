@@ -5,6 +5,7 @@ export default {
     invalidBreakpointsTypes: { lg: '0', md: 0, sm: 0, xs: 0, xx: 0 },
     validBreakpoints: { lg: 0, md: 0, sm: 0, xs: 0, xxs: 0 }
   },
+  intersectionObserverConfig: { root: null, rootMargin: '8px', threshold: 0.40 },
   keysValidatorPayload: {
     invalidKeys1: ['lg', 'md', 'sm', 'xs', 'xxw'],
     invalidKeys2: ['1', '2', '3', '4', '5'],

@@ -10,6 +10,18 @@ Rewrote to TypeScript, Composition API and migrated to Vue3
 
 
 ### Usage
+```js
+  import { createApp } from 'vue'
+  import App from './App.vue'
+  import GridLayout from 'vue3-drr-grid-layout'
+  import 'vue3-drr-grid-layout/dist/style.css'
+
+  const app = createApp(App)
+
+  app.use(GridLayout)
+
+  app.mount('#app')
+```
 ```vue
   <template>
     <grid-layout
@@ -103,7 +115,7 @@ responsiveLayouts: object = {}
 ```js
 // To enable intersection observer mode, the useObserver prop must be true.
 useObserver: boolean = false
-// Intersection observer config
+// Intersection observer config { ...propsConfig, ...defaultConfig }
 intersectionObserverConfig: object = { root: null, rootMargin: '8px', threshold: 0.40 }
 ```
 

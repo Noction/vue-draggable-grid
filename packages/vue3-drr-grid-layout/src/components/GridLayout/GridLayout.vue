@@ -247,16 +247,27 @@ watch(() => width.value, (value, oldValue) => {
 
 // methods
 const observerCallback = entries => {
+  const observerItems = {
+    observe: [],
+    unobserve: []
+  }
+
   entries.forEach(({ target, isIntersecting }) => {
 
     if (isIntersecting) {
-      emit('intersection-observe', target.__INTERSECTION_OBSERVER_INDEX__)
+      observerItems.observe.push(target.__INTERSECTION_OBSERVER_INDEX__)
+      // emit('intersection-observe', target.__INTERSECTION_OBSERVER_INDEX__)
       return
     }
 
-    emit('intersection-unobserve', target.__INTERSECTION_OBSERVER_INDEX__)
+    observerItems.unobserve.push(target.__INTERSECTION_OBSERVER_INDEX__)
+    // emit('intersection-unobserve', target.__INTERSECTION_OBSERVER_INDEX__)
   })
+
+  emit('intersection-observe', observerItems.observe)
+  emit('intersection-unobserve', observerItems.unobserve)
 }
+
 const layoutItemOptional = (props: { [key: string]: any }) => {
   const requiredKeys = Object.keys(layoutItemRequired)
 
@@ -268,6 +279,7 @@ const layoutItemOptional = (props: { [key: string]: any }) => {
       return acc
     }, {})
 }
+
 const layoutUpdate = (): void => {
   if (props.layout && originalLayout.value) {
     if (props.layout.length !== originalLayout.value.length) {
@@ -483,7 +495,12 @@ onMounted(() => {
         }
 
         if (props.useObserver) {
-          observer = new IntersectionObserver(observerCallback, props.intersectionObserverConfig)
+          observer = new IntersectionObserver(observerCallback, {
+            root: null,
+            rootMargin: '8px',
+            threshold: 0.40,
+            ...props.intersectionObserverConfig
+          })
         }
       })
     })

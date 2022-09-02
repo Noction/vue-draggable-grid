@@ -12,6 +12,7 @@ export const breakpointsValidator = (cols: Breakpoints): boolean => {
 }
 
 export const intersectionObserverConfigValidator = (config: IntersectionObserverConfig) => {
+  config = { ...testsPayload.intersectionObserverConfig, ...config }
   const keys: (keyof IntersectionObserverConfig)[] = ['root', 'rootMargin', 'threshold']
   const configKeys = (Object.keys(config) as (keyof IntersectionObserverConfig)[])
 
