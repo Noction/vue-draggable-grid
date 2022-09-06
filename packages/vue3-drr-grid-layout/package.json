@@ -1,6 +1,6 @@
 {
   "name": "vue3-drr-grid-layout",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "keywords": [
     "grid",
