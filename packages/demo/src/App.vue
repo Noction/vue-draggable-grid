@@ -1,5 +1,5 @@
 <template>
-  <button @click="editable = !editable">
+  <button @click="foo">
     asdasd
   </button>
   <grid-layout
@@ -69,8 +69,23 @@ export default defineComponent({
     containerResized (e) {
       console.log(e)
     },
-    foo (e) {
-      console.log(e)
+    foo () {
+      const lastLayoutItem = this.layout[this.layout.length - 1]
+      const newIndex = lastLayoutItem.i + 1
+      const { y, x } = lastLayoutItem
+      const isFullLine = this.layout.filter(l => l.y === y).length === 4
+      const newY = isFullLine ? y + 3 : y
+      const newX = isFullLine ? 0 : x + 3
+
+      const newGridItem = {
+        x: newX,
+        y: newY,
+        w: 3,
+        h: 3,
+        index: newIndex
+      }
+
+      this.layout.push(newGridItem)
     }
   }
 })
