@@ -7,7 +7,6 @@
     :col-num="colNum"
     :row-height="rowHeight"
     @item-resize="containerResized"
-    @intersection-observer="foo"
   >
     <template #item="slotProps">
       {{ slotProps.item.i }}

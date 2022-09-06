@@ -10,23 +10,23 @@
         class="vue-grid-placeholder"
         v-bind="{ ...gridItemProps, ...placeholder }"
       />
-      <grid-item
-        v-for="layoutItem in layout"
-        :key="layoutItem.i"
-        v-bind="{ ...gridItemProps, ...layoutItemOptional(layoutItem) }"
-        :observer="observer"
-        @drag-event="dragEvent"
-        @resize-event="resizeEvent"
-        @container-resized="emit('container-resized', $event)"
-        @resize="emit('item-resize', $event)"
-        @move="emit('item-move', $event)"
-        @moved="emit('item-moved', $event)"
-      >
-        <slot
-          name="item"
-          :item="layoutItem"
-        />
-      </grid-item>
+      <slot :grid-item-props="{ ...gridItemProps, observer }">
+        <grid-item
+          v-for="layoutItem in layout"
+          :key="layoutItem.i"
+          v-bind="{ ...gridItemProps, ...layoutItemOptional(layoutItem) }"
+          :observer="observer"
+          @container-resized="emit('container-resized', $event)"
+          @resize="emit('item-resize', $event)"
+          @move="emit('item-move', $event)"
+          @moved="emit('item-moved', $event)"
+        >
+          <slot
+            name="gridItemContent"
+            :item="layoutItem"
+          />
+        </grid-item>
+      </slot>
     </div>
   </div>
 </template>
@@ -244,7 +244,14 @@ watch(() => width.value, (value, oldValue) => {
     updateHeight()
   })
 })
+watch(() => props.useObserver, value => {
+  if (!value) {
+    observer.disconnect()
+    return
+  }
 
+  createObserver()
+})
 // methods
 const observerCallback = entries => {
   const observerItems = {
@@ -365,6 +372,9 @@ const responsiveGridLayout = (): void => {
 }
 const onCreated = () => {
   emit('layout-created', props.layout)
+
+  emitter.on('resize-event', resizeEvent)
+  emitter.on('drag-event', dragEvent)
 }
 const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   const layoutItem = getLayoutItem(props.layout, id)
@@ -459,6 +469,15 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   }
 }
 
+const createObserver = () => {
+  observer = new IntersectionObserver(observerCallback, {
+    root: null,
+    rootMargin: '8px',
+    threshold: 0.40,
+    ...props.intersectionObserverConfig
+  })
+}
+
 // lifecycles
 onCreated()
 onBeforeUnmount(() => {
@@ -467,6 +486,9 @@ onBeforeUnmount(() => {
   if (erd.value && wrapper.value) {
     erd.value.uninstall(wrapper.value)
   }
+
+  emitter.off('resize-event', resizeEvent)
+  emitter.off('drag-event', dragEvent)
 })
 onBeforeMount(() => {
   emit('layout-before-mount', props.layout)
@@ -487,20 +509,13 @@ onMounted(() => {
       emit('update:layout', props.layout)
       updateHeight()
 
-      nextTick(() => {
-        if (wrapper.value) {
-          erd.value.listenTo(wrapper.value, onWindowResize)
-        }
+      if (wrapper.value) {
+        erd.value.listenTo(wrapper.value, onWindowResize)
+      }
 
-        if (props.useObserver) {
-          observer = new IntersectionObserver(observerCallback, {
-            root: null,
-            rootMargin: '8px',
-            threshold: 0.40,
-            ...props.intersectionObserverConfig
-          })
-        }
-      })
+      if (props.useObserver) {
+        createObserver()
+      }
     })
   })
 })

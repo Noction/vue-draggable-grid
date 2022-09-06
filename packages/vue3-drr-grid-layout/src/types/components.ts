@@ -17,7 +17,7 @@ export interface GridItemPosition {
   width: number
 }
 
-export type GridLayoutEvent = [string, string, number, number, number, number]
+export type GridLayoutEvent = [string, number, number, number, number, number]
 
 export type Inner<Type> = Record<InnerKeys, Type>
 

@@ -273,6 +273,7 @@ const createStyle = (): void => {
   style.props = props.useCssTransforms
     ? setTransform(pos.top, pos.left, pos.width, pos.height)
     : setTopLeft(pos.top, pos.left, pos.width, pos.height)
+
 }
 const emitContainerResized = () => {
   createStyle()
@@ -297,8 +298,7 @@ const emitContainerResized = () => {
   })
 }
 const handleDrag = (event: any): void  => {
-  if (props.static) return
-  if (isResizing.value) return
+  if (props.static || isResizing.value) return
 
   const position = getControlPosition(event)
 
@@ -359,7 +359,7 @@ const handleDrag = (event: any): void  => {
     emit('moved', props.i, pos.x, pos.y)
   }
 
-  emit('drag-event', [event.type, props.i, pos.x, pos.y, inner.value.h, inner.value.w])
+  emitter?.emit('drag-event', [event.type, props.i, pos.x, pos.y, inner.value.h, inner.value.w])
 }
 const handleResize = (event: any): void => {
   if (props.static) return
@@ -427,7 +427,7 @@ const handleResize = (event: any): void => {
     emit('resized', props.i, pos.h, pos.w, newSize.height, newSize.width)
   }
 
-  emit('resize-event', [event.type, props.i, inner.value.x, inner.value.y, pos.h, pos.w])
+  emitter?.emit('resize-event', [event.type, props.i, inner.value.x, inner.value.y, pos.h, pos.w])
 }
 const setColNum = (colNum: number): void => {
   cols.value = colNum
@@ -478,15 +478,15 @@ const tryMakeResizable = (): void => {
 }
 
 const onCreate = () => {
-  emitter.on('recalculate-styles', createStyle)
-  emitter.on('set-col-num', setColNum)
+  emitter?.on('recalculate-styles', createStyle)
+  emitter?.on('set-col-num', setColNum)
 }
 // lifecycle
 
 onCreate()
 onBeforeUnmount(() => {
-  emitter.off('recalculate-styles', createStyle)
-  emitter.off('set-col-num', setColNum)
+  emitter?.off('recalculate-styles', createStyle)
+  emitter?.off('set-col-num', setColNum)
 
   if (interactObj.value) {
     interactObj.value.unset()
