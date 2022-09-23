@@ -99,6 +99,10 @@ const props = defineProps({
     type: Object as PropType<IntersectionObserverConfig>,
     validator: intersectionObserverConfigValidator
   },
+  horizontalShift: {
+    default: false,
+    type: Boolean
+  },
   isDraggable: {
     default: true,
     type: Boolean
@@ -457,7 +461,7 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
     })
   }
 
-  emit('update:layout', moveElement(props.layout, l, x, y, true, props.preventCollision))
+  emit('update:layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
 
   compact(props.layout, props.verticalCompact)
 

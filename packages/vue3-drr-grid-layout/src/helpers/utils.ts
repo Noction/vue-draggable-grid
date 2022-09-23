@@ -1,5 +1,5 @@
 import { CSSProperties } from 'vue'
-import { Layout, LayoutItem, setPositionFnc } from '../types/helpers'
+import { Layout, LayoutItem, MovingDirection, MovingDirections, setPositionFnc } from '../types/helpers'
 
 export const bottom = (layout: Layout): number => {
   let max = 0
@@ -107,7 +107,7 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: string): LayoutItem => layout.filter(l => l.i === +id)[0]
+export const getLayoutItem = (layout: Layout, id: number): LayoutItem => layout.filter(l => l.i === id)[0]
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
 
@@ -116,7 +116,12 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
 
   const oldX = l.x
   const oldY = l.y
-  const movingUp = y && l.y > y
+  const moving = {
+    DOWN: oldY < y,
+    LEFT: oldX > x,
+    RIGHT: oldX < x,
+    UP: oldY > y
+  }
 
   l.x = x
   l.y = y
@@ -125,7 +130,7 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
 
   let sorted = sortLayoutItemsByRowCol(layout)
 
-  if (movingUp) sorted = sorted.reverse()
+  if (moving.UP) sorted = sorted.reverse()
 
   const collisions = getAllCollisions(sorted, l)
 
@@ -144,16 +149,18 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
 
     if (l.y > collision.y && l.y - collision.y > collision.h / 4) continue
 
+    const movingDirection = (Object.keys(moving) as MovingDirections[]).filter(k => moving[k])?.[0]
+
     if (collision.static) {
-      layout = moveElementAwayFromCollision(layout, collision, l, isUserAction)
+      layout = moveElementAwayFromCollision(layout, collision, l, isUserAction, movingDirection)
     } else {
-      layout = moveElementAwayFromCollision(layout, l, collision, isUserAction)
+      layout = moveElementAwayFromCollision(layout, l, collision, isUserAction, movingDirection)
     }
   }
 
   return layout
 }
-export const moveElementAwayFromCollision = (layout: Layout, collidesWith: LayoutItem, itemToMove: LayoutItem, isUserAction?: boolean): Layout => {
+export const moveElementAwayFromCollision = (layout: Layout, collidesWith: LayoutItem, itemToMove: LayoutItem, isUserAction: boolean, movingDirection: MovingDirection): Layout => {
 
   const preventCollision = false
 
@@ -171,7 +178,27 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
     }
   }
 
-  return moveElement(layout, itemToMove, itemToMove.x, itemToMove.y + 1, preventCollision)
+  const movingCordsData = {
+    $default: {
+      x: collidesWith.x,
+      y: itemToMove.y + 1
+    },
+    [MovingDirections.LEFT]: [itemToMove.x + collidesWith.w, collidesWith.y],
+    [MovingDirections.RIGHT]: [itemToMove.x - collidesWith.w, collidesWith.y],
+    [MovingDirections.UP]: [itemToMove.x, itemToMove.y + collidesWith.h],
+    [MovingDirections.DOWN]: [itemToMove.x, itemToMove.y - collidesWith.h]
+  }
+
+  if (movingDirection in movingCordsData) {
+    const [x, y] = movingCordsData[movingDirection]
+
+    movingCordsData.$default.x = x
+    movingCordsData.$default.y = y
+  }
+
+  if (movingDirection === MovingDirections.LEFT && collidesWith.w < itemToMove.w && collidesWith.x !== itemToMove.x) return layout
+
+  return moveElement(layout, itemToMove, movingCordsData.$default.x, movingCordsData.$default.y, preventCollision)
 }
 
 export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => ({
