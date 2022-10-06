@@ -501,6 +501,7 @@ onMounted(() => {
     cols.value = getColsFromBreakpoint(props.lastBreakpoint, props.breakpointCols)
   }
 
+  tryMakeResizable()
   tryMakeDraggable()
   createStyle()
 })

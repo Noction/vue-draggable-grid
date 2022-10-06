@@ -217,7 +217,7 @@ const gridItemProps = computed(() => ({
 watch(() => props.colNum, value => {
   emitter.emit('set-col-num', value)
 })
-watch(() => props.layout, () => {
+watch(() => [...props.layout], () => {
   layoutUpdate()
 })
 watch(() => props.margin, () => {
