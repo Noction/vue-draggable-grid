@@ -123,6 +123,7 @@ const emit = defineEmits(['container-resized', 'resize', 'resized', 'move', 'mov
 const item = ref<HTMLDivElement | null>(null)
 const emitter = inject(emitterKey)
 const resizableHandleClass = 'vue-resizable-handle'
+
 // data
 const cols = ref(props.colNum)
 const dragEventSet = ref(false)
