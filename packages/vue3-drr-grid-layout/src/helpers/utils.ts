@@ -33,7 +33,9 @@ export const collides = (l1: LayoutItem, l2: LayoutItem): boolean => {
   return !(l1 === l2 || l1.x + l1.w <= l2.x || l1.x >= l2.x + l2.w || l1.y + l1.h <= l2.y || l1.y >= l2.y + l2.h)
 }
 
-export const compact = (layout: Layout, verticalCompact: boolean): Layout => {
+export const compact = (layout: Layout, verticalCompact: boolean): Layout | undefined => {
+  if (!layout) return
+
   const compareWith = getStatics(layout)
   const sorted = sortLayoutItemsByRowCol(layout)
   const out = Array(layout.length)

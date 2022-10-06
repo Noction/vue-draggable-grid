@@ -3,16 +3,13 @@
     asdasd
   </button>
   <grid-layout
-    v-model:layout="layout"
+    v-model:layout="l"
     :col-num="colNum"
     :row-height="rowHeight"
     @item-resize="containerResized"
   >
-    <template #item="slotProps">
+    <template #gridItemContent="slotProps">
       {{ slotProps.item.i }}
-      <div>
-        asdasdasd
-      </div>
     </template>
   </grid-layout>
 </template>
@@ -35,23 +32,24 @@ export default defineComponent({
         { x:3, y:3, w:3, h:3, i:5 },
         { x:6, y:3, w:3, h:3, i:6 },
         { x:9, y:3, w:3, h:3, i:7 },
-        { x:0, y:6, w:3, h:3, i:8 },
-        { x:3, y:6, w:3, h:3, i:9 },
-        { x:6, y:6, w:3, h:3, i:10 },
-        { x:9, y:6, w:3, h:3, i:11 },
-        { x:0, y:9, w:3, h:3, i:12 },
-        { x:3, y:9, w:3, h:3, i:13 },
-        { x:6, y:9, w:3, h:3, i:14 },
-        { x:9, y:9, w:3, h:3, i:15 },
-        { x:0, y:12, w:3, h:3, i:16 },
-        { x:3, y:12, w:3, h:3, i:17 },
-        { x:6, y:12, w:3, h:3, i:18 },
-        { x:9, y:12, w:3, h:3, i:19 },
-        { x:0, y:15, w:3, h:3, i:20 },
-        { x:3, y:15, w:3, h:3, i:21 },
-        { x:6, y:15, w:3, h:3, i:22 },
-        { x:9, y:15, w:3, h:3, i:23 }
+        { x:0, y:6, w:3, h:3, i:8 }
+        // { x:3, y:6, w:3, h:3, i:9 },
+        // { x:6, y:6, w:3, h:3, i:10 },
+        // { x:9, y:6, w:3, h:3, i:11 },
+        // { x:0, y:9, w:3, h:3, i:12 },
+        // { x:3, y:9, w:3, h:3, i:13 },
+        // { x:6, y:9, w:3, h:3, i:14 },
+        // { x:9, y:9, w:3, h:3, i:15 },
+        // { x:0, y:12, w:3, h:3, i:16 },
+        // { x:3, y:12, w:3, h:3, i:17 },
+        // { x:6, y:12, w:3, h:3, i:18 },
+        // { x:9, y:12, w:3, h:3, i:19 },
+        // { x:0, y:15, w:3, h:3, i:20 },
+        // { x:3, y:15, w:3, h:3, i:21 },
+        // { x:6, y:15, w:3, h:3, i:22 },
+        // { x:9, y:15, w:3, h:3, i:23 }
       ],
+      l: undefined,
       margin: [10, 10]
     }
   },
@@ -62,8 +60,8 @@ export default defineComponent({
   },
   mounted () {
     setTimeout(() => {
-      // this.rowHeight = 50
-    }, 5000)
+      this.l = this.layout
+    }, 0)
   },
   methods: {
     containerResized (e) {
@@ -80,8 +78,8 @@ export default defineComponent({
       const newGridItem = {
         x: newX,
         y: newY,
-        w: 3,
-        h: 3,
+        w: 6,
+        h: 6,
         index: newIndex
       }
 

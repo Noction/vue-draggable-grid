@@ -330,7 +330,7 @@ const updateHeight = (): void => {
   mergedStyle.value = { height }
 }
 const containerHeight = (): string | undefined => {
-  if (!props.autoSize) return
+  if (!props.autoSize || !props.layout) return
 
   const [, m2] = props.margin
 
