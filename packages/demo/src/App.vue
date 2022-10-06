@@ -3,7 +3,7 @@
     asdasd
   </button>
   <grid-layout
-    v-model:layout="l"
+    v-model:layout="layout"
     :col-num="colNum"
     :row-height="rowHeight"
     @item-resize="containerResized"
@@ -60,8 +60,8 @@ export default defineComponent({
   },
   mounted () {
     setTimeout(() => {
-      this.l = this.layout
-    }, 0)
+      this.foo()
+    }, 1000)
   },
   methods: {
     containerResized (e) {
@@ -80,7 +80,7 @@ export default defineComponent({
         y: newY,
         w: 6,
         h: 6,
-        index: newIndex
+        i: newIndex
       }
 
       this.layout.push(newGridItem)

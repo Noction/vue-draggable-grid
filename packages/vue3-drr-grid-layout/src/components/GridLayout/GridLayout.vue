@@ -40,7 +40,8 @@ import mitt from 'mitt'
 import {
   Breakpoints,
   BreakpointsKeys,
-  Layout, LayoutItem,
+  Layout,
+  LayoutItem,
   RecordBreakpoint,
   ResponsiveLayout
 } from '../../types/helpers'
