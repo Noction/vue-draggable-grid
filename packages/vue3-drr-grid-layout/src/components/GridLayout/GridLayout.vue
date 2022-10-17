@@ -226,12 +226,8 @@ const gridItemProps = computed(() => ({
 watch(() => props.colNum, value => {
   emitter.emit('set-col-num', value)
 })
-<<<<<<< HEAD
-watch(() => [...props.layout], () => {
-=======
 
 watch(() => props.layout.length, () => {
->>>>>>> dev_compact
   layoutUpdate()
   compact(props.layout, props.verticalCompact)
 })
