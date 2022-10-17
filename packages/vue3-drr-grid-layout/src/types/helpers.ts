@@ -2,8 +2,6 @@ export type Breakpoints = RecordBreakpoint<number>
 
 export type BreakpointsKeys = 'lg' | 'md' | 'sm' | 'xs' | 'xxs' | ''
 
-export type CompactType = 'v' | 'h' | 'vh'
-
 export type Layout = LayoutItem[]
 
 export type LayoutItem = LayoutItemRequired & LayoutItemOptional
@@ -20,6 +18,10 @@ export type LayoutItemOptional = {
 }
 
 export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: number }
+
+export type LayoutItemsByYAxis = {
+  [K in string]: LayoutItem[]
+}
 
 export type MovingDirection = keyof typeof MovingDirections
 

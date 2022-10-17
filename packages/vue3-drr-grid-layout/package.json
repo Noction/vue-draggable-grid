@@ -30,7 +30,7 @@
   "files": [
     "dist"
   ],
-  "license": "MITT",
+  "license": "MIT",
   "main": "dist/vue3-drr-grid-layout.umd.js",
   "module": "dist/vue3-drr-grid-layout.mjs",
   "types": "dist/index.d.ts",
