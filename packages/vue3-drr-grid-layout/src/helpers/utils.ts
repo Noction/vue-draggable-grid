@@ -1,5 +1,12 @@
 import { CSSProperties } from 'vue'
-import { Layout, LayoutItem, setPositionFnc } from '../types/helpers'
+import {
+  Layout,
+  LayoutItem,
+  LayoutItemsByYAxis,
+  MovingDirection,
+  MovingDirections,
+  setPositionFnc
+} from '../types/helpers'
 
 export const bottom = (layout: Layout): number => {
   let max = 0
@@ -109,16 +116,52 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: string): LayoutItem => layout.filter(l => l.i === +id)[0]
+export const getGroupWidgetByHeightInAxis = (layout: Layout) => {
+  // grouping grid by Y-axis
+  const groupByRow = layout.reduce((acc, val) => {
+    acc[val.y] = (acc?.[val.y] ?? []).concat(val)
+    return acc
+  }, {} as LayoutItemsByYAxis)
+
+  // Y-axis of all widgets
+  const widgetsYAxis = Object.keys(groupByRow)
+
+  // grouping widgets by height and Y-axis
+  // if widget have y: 0, and height: 3 => this widget will be in row 0 and row 2
+  return widgetsYAxis.reduce((acc, val) => {
+    const widgetsInRow = groupByRow[val]
+
+    acc[val] = (acc[val] ?? []).concat(widgetsInRow)
+
+    widgetsInRow.forEach(el => {
+      for (let i = el.y; i < el.h + el.y - 1; i++) {
+        const nextYAxis = i + 1
+
+        if (nextYAxis === +val) continue
+
+        acc[nextYAxis] = (acc[nextYAxis] ?? []).concat(el)
+      }
+    })
+
+    return acc
+  }, {} as LayoutItemsByYAxis)
+}
+
+export const getLayoutItem = (layout: Layout, id: number): LayoutItem => layout.filter(l => l.i === id)[0]
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
 
-export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number, isUserAction: boolean, preventCollision?: boolean): Layout => {
+export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number, isUserAction: boolean, horizontalShift: boolean, preventCollision?: boolean): Layout => {
   if (l.static) return layout
 
   const oldX = l.x
   const oldY = l.y
-  const movingUp = y && l.y > y
+  const moving = {
+    DOWN: oldY < y,
+    LEFT: oldX > x,
+    RIGHT: oldX < x,
+    UP: oldY > y
+  }
 
   l.x = x
   l.y = y
@@ -127,7 +170,7 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
 
   let sorted = sortLayoutItemsByRowCol(layout)
 
-  if (movingUp) sorted = sorted.reverse()
+  if (moving.UP) sorted = sorted.reverse()
 
   const collisions = getAllCollisions(sorted, l)
 
@@ -146,17 +189,19 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
 
     if (l.y > collision.y && l.y - collision.y > collision.h / 4) continue
 
+    const movingDirection = (Object.keys(moving) as MovingDirections[]).filter(k => moving[k])?.[0]
+
     if (collision.static) {
-      layout = moveElementAwayFromCollision(layout, collision, l, isUserAction)
+      layout = moveElementAwayFromCollision(layout, collision, l, isUserAction, movingDirection, horizontalShift)
     } else {
-      layout = moveElementAwayFromCollision(layout, l, collision, isUserAction)
+      layout = moveElementAwayFromCollision(layout, l, collision, isUserAction, movingDirection, horizontalShift)
     }
   }
 
   return layout
 }
-export const moveElementAwayFromCollision = (layout: Layout, collidesWith: LayoutItem, itemToMove: LayoutItem, isUserAction?: boolean): Layout => {
 
+export const moveElementAwayFromCollision = (layout: Layout, collidesWith: LayoutItem, itemToMove: LayoutItem, isUserAction: boolean, movingDirection: MovingDirection, horizontalShift: boolean): Layout => {
   const preventCollision = false
 
   if (isUserAction) {
@@ -169,11 +214,35 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
     }
 
     if (!getFirstCollision(layout, fakeItem)) {
-      return moveElement(layout, itemToMove, fakeItem.x, fakeItem.y, preventCollision)
+      return moveElement(layout, itemToMove, fakeItem.x, fakeItem.y, isUserAction, horizontalShift, preventCollision)
     }
   }
 
-  return moveElement(layout, itemToMove, itemToMove.x, itemToMove.y + 1, preventCollision)
+  const movingCordsData = {
+    $default: {
+      x: collidesWith.x,
+      y: itemToMove.y + 1
+    },
+    [MovingDirections.LEFT]: [itemToMove.x + collidesWith.w, collidesWith.y],
+    [MovingDirections.RIGHT]: [itemToMove.x - collidesWith.w, collidesWith.y],
+    [MovingDirections.UP]: [itemToMove.x, itemToMove.y + collidesWith.h],
+    [MovingDirections.DOWN]: [itemToMove.x, itemToMove.y - collidesWith.h]
+  }
+
+  if (horizontalShift) {
+    if (movingDirection in movingCordsData) {
+      const [x, y] = movingCordsData[movingDirection]
+
+      movingCordsData.$default.x = x
+      movingCordsData.$default.y = y
+    }
+
+    const horizontalDirection = movingDirection === MovingDirections.LEFT || movingDirection === MovingDirections.RIGHT
+
+    if (horizontalDirection && collidesWith.w < itemToMove.w && collidesWith.x !== itemToMove.x) return layout
+  }
+
+  return moveElement(layout, itemToMove, movingCordsData.$default.x, movingCordsData.$default.y, horizontalShift, preventCollision)
 }
 
 export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => ({

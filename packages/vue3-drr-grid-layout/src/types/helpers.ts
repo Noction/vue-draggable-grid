@@ -19,6 +19,19 @@ export type LayoutItemOptional = {
 
 export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: number }
 
+export type LayoutItemsByYAxis = {
+  [K in string]: LayoutItem[]
+}
+
+export type MovingDirection = keyof typeof MovingDirections
+
+export enum MovingDirections {
+  DOWN = 'DOWN',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+  UP = 'UP',
+}
+
 export type RecordBreakpoint<Type> = Partial<Record<BreakpointsKeys, Type>>
 
 export type ResponsiveLayout = RecordBreakpoint<Layout>
