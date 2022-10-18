@@ -171,19 +171,20 @@ const props = defineProps({
 })
 // emits
 const emit = defineEmits([
-  'update:layout',
-  'layout-ready',
-  'update:breakpoint',
-  'layout-created',
-  'layout-before-mount',
-  'layout-mounted',
   'container-resized',
-  'item-resize',
-  'item-resized',
+  'intersection-observe',
+  'intersection-unobserve',
   'item-move',
   'item-moved',
-  'intersection-observe',
-  'intersection-unobserve'
+  'item-resize',
+  'item-resized',
+  'layout-before-mount',
+  'layout-created',
+  'layout-mounted',
+  'layout-ready',
+  'layout-updated',
+  'update:breakpoint',
+  'update:layout'
 ])
 const emitter = mitt<Events>()
 
@@ -341,7 +342,7 @@ const layoutUpdate = (): void => {
 
     updateHeight()
 
-    emit('update:layout', props.layout)
+    emit('layout-updated', props.layout)
     emitter.emit('recalculate-styles')
   }
 }
@@ -476,7 +477,7 @@ const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   updateHeight()
 
   if (eventName === 'resizeend') {
-    emit('update:layout', props.layout)
+    emit('layout-updated', props.layout)
   }
 }
 
@@ -508,7 +509,7 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
 
   if (eventName === 'dragend') {
     compact(props.layout, props.verticalCompact)
-    emit('update:layout', props.layout)
+    emit('layout-updated', props.layout)
   }
 }
 
@@ -551,7 +552,7 @@ onMounted(() => {
       addWindowEventListener('resize', onWindowResize.bind(this))
       compact(props.layout, props.verticalCompact)
 
-      emit('update:layout', props.layout)
+      emit('layout-updated', props.layout)
       updateHeight()
 
       if (wrapper.value) {
