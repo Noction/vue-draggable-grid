@@ -100,14 +100,14 @@ const props = defineProps({
     type: Object as PropType<Breakpoints>,
     validator: breakpointsValidator
   },
+  horizontalShift: {
+    default: false,
+    type: Boolean
+  },
   intersectionObserverConfig: {
     default: () => ({ root: null, rootMargin: '8px', threshold: 0.40 }),
     type: Object as PropType<IntersectionObserverConfig>,
     validator: intersectionObserverConfigValidator
-  },
-  horizontalShift: {
-    default: false,
-    type: Boolean
   },
   isDraggable: {
     default: true,
