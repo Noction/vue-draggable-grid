@@ -10,13 +10,9 @@
     @item-resize="containerResized"
   >
     <template #gridItemContent="slotProps">
-<<<<<<< HEAD
-      {{ slotProps.item.i }}
-=======
       <div>
         {{ slotProps.item.i }}
       </div>
->>>>>>> dev_compact
     </template>
   </grid-layout>
 </template>
@@ -29,50 +25,21 @@ export default defineComponent({
   data () {
     return {
       editable: false,
-      colNum: 4,
+      colNum: 6,
       layout: [
-<<<<<<< HEAD
-        { x:0, y:0, w:3, h:3, i:0 },
-        { x:3, y:0, w:3, h:3, i:1 },
-        { x:6, y:0, w:3, h:3, i:2 },
-        { x:9, y:0, w:3, h:3, i:3 },
-        { x:0, y:3, w:3, h:3, i:4 },
-        { x:3, y:3, w:3, h:3, i:5 },
-        { x:6, y:3, w:3, h:3, i:6 },
-        { x:9, y:3, w:3, h:3, i:7 },
-        { x:0, y:6, w:3, h:3, i:8 }
-        // { x:3, y:6, w:3, h:3, i:9 },
-        // { x:6, y:6, w:3, h:3, i:10 },
-        // { x:9, y:6, w:3, h:3, i:11 },
-        // { x:0, y:9, w:3, h:3, i:12 },
-        // { x:3, y:9, w:3, h:3, i:13 },
-        // { x:6, y:9, w:3, h:3, i:14 },
-        // { x:9, y:9, w:3, h:3, i:15 },
-        // { x:0, y:12, w:3, h:3, i:16 },
-        // { x:3, y:12, w:3, h:3, i:17 },
-        // { x:6, y:12, w:3, h:3, i:18 },
-        // { x:9, y:12, w:3, h:3, i:19 },
-        // { x:0, y:15, w:3, h:3, i:20 },
-        // { x:3, y:15, w:3, h:3, i:21 },
-        // { x:6, y:15, w:3, h:3, i:22 },
-        // { x:9, y:15, w:3, h:3, i:23 }
-=======
-        { x:0, y:0, w:1, h:1, i:0 },
-        { x:1, y:0, w:1, h:1, i:1 },
-        { x:2, y:0, w:1, h:1, i:2 },
-        { x:3, y:0, w:1, h:1, i:3 },
-        { x:0, y:1, w:1, h:1, i:4 },
-        { x:1, y:1, w:1, h:1, i:5 },
-        { x:2, y:1, w:1, h:1, i:6 },
-        { x:3, y:1, w:1, h:1, i:7 },
-        { x:0, y:2, w:1, h:1, i:8 },
-        { x:0, y:3, w:1, h:1, i:9 },
-        { x:0, y:4, w:1, h:1, i:10 },
-        { x:3, y:2, w:1, h:1, i:11 },
-        { x:0, y:5, w:1, h:1, i:12 }
->>>>>>> dev_compact
+        { x:0, y:0, w:2, h:2, i:0 },
+        { x:2, y:0, w:2, h:2, i:1 },
+        { x:4, y:0, w:2, h:2, i:2 },
+        { x:0, y:2, w:2, h:2, i:3 },
+        { x:2, y:2, w:2, h:2, i:4 },
+        { x:4, y:2, w:2, h:2, i:5 },
+        { x:0, y:4, w:2, h:2, i:6 },
+        { x:2, y:4, w:2, h:2, i:7 },
+        { x:4, y:4, w:2, h:2, i:8 },
+        { x:0, y:6, w:2, h:2, i:9 },
+        { x:2, y:6, w:2, h:2, i:10 },
+        { x:4, y:6, w:2, h:2, i:11 }
       ],
-      l: undefined,
       margin: [10, 10]
     }
   },
@@ -83,8 +50,8 @@ export default defineComponent({
   },
   mounted () {
     setTimeout(() => {
-      this.foo()
-    }, 1000)
+      // this.rowHeight = 50
+    }, 5000)
   },
   methods: {
     bar () {
@@ -98,14 +65,6 @@ export default defineComponent({
       const yAxis = Object.keys(groupWidgetByHeightInAxis)
       const getLineWidth = line => line.reduce((acc, val) => acc + val.w, 0)
 
-<<<<<<< HEAD
-      const newGridItem = {
-        x: newX,
-        y: newY,
-        w: 6,
-        h: 6,
-        i: newIndex
-=======
       const req = (lineI = 0, nextLineI = 1) => {
         if (lineI === yAxis.length - 1) return
 
@@ -172,7 +131,6 @@ export default defineComponent({
         if (getLineWidth(line) < 4) {
           return req(lineI, nextLineI + 1)
         }
->>>>>>> dev_compact
       }
 
       req()

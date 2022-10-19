@@ -220,7 +220,7 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
 
   const movingCordsData = {
     $default: {
-      x: collidesWith.x,
+      x: itemToMove.x,
       y: itemToMove.y + 1
     },
     [MovingDirections.LEFT]: [itemToMove.x + collidesWith.w, collidesWith.y],
