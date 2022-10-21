@@ -266,84 +266,6 @@ watch(() => props.useObserver, value => {
   createObserver()
 })
 // methods
-const alignGridItems = (): void => {
-  const groupWidgetByHeightInAxis = getGroupWidgetByHeightInAxis(props.layout)
-  const yAxis = Object.keys(groupWidgetByHeightInAxis)
-  const getLineWidth = (line: LayoutItem[]) => line.reduce((acc, val) => acc + val.w, 0)
-
-  const req = (lineI = 0, nextLineI = 1): void => {
-    if (lineI === yAxis.length - 1) return
-
-    const line = groupWidgetByHeightInAxis[yAxis[lineI]]
-    const lineWidth = getLineWidth(line)
-    const isSpace = lineWidth < 4
-
-    if (!isSpace) return req(lineI + 1, lineI + 2)
-
-    const nextLine = groupWidgetByHeightInAxis?.[yAxis?.[nextLineI]]
-
-    if (!nextLine) return req(lineI + 1, lineI + 1)
-
-    for (let i = 0; i < nextLine.length; i++) {
-      const itemFromNextLine = nextLine[i]
-
-      if (itemFromNextLine.w > 4 - lineWidth) continue
-
-      // if height > 1
-      const hasInLine = line.find(el => el.i === itemFromNextLine.i)
-
-      if (hasInLine) continue
-
-      const xAxisInLastRow = line.map(w => w.x)
-      const xAxisDefaultRow = Array.from({ length: 4 + 1 }, (_, i) => i)
-
-      for (let i = 0; i < xAxisDefaultRow.length - 1; i++) {
-        const xAxis = xAxisDefaultRow[i]
-
-        if (!xAxisInLastRow.includes(xAxis)) continue
-
-        const gridItem = line.find(w => w.x === xAxis)
-
-        if (!gridItem) continue
-
-        const blockArray = Array.from({ length: gridItem.w }, () => 100)
-
-        xAxisDefaultRow.splice(i, gridItem.w, ...blockArray)
-      }
-
-      const firstEmptyAxis = Math.min(...xAxisDefaultRow)
-      const indexOfEmptyXAxis = xAxisDefaultRow.indexOf(firstEmptyAxis)
-
-      if (xAxisDefaultRow[indexOfEmptyXAxis + 1 - 1] !== 100) {
-        itemFromNextLine.x = firstEmptyAxis
-        itemFromNextLine.y = +yAxis[lineI]
-      }
-
-      line.push(itemFromNextLine)
-
-      if (itemFromNextLine.h <= 1) {
-        nextLine.splice(i, 1)
-      }
-
-      if (itemFromNextLine.h > 1) {
-        const nL = groupWidgetByHeightInAxis?.[yAxis?.[nextLineI + 1]]
-
-        nL.splice(i, 1)
-      }
-
-      if (getLineWidth(line) > 3) {
-        return req(lineI + 1, lineI + 2)
-      }
-    }
-
-    if (getLineWidth(line) < 4) {
-      return req(lineI, nextLineI + 1)
-    }
-  }
-
-  req()
-}
-
 const observerCallback = entries => {
   const observerItems = {
     observe: [],
@@ -570,8 +492,6 @@ const createObserver = () => {
   })
 }
 
-// expose
-defineExpose({ alignGridItems })
 
 // lifecycles
 onCreated()

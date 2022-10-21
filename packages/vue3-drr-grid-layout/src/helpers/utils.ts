@@ -116,37 +116,6 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getGroupWidgetByHeightInAxis = (layout: Layout) => {
-  // grouping grid by Y-axis
-  const groupByRow = layout.reduce((acc, val) => {
-    acc[val.y] = (acc?.[val.y] ?? []).concat(val)
-    return acc
-  }, {} as LayoutItemsByYAxis)
-
-  // Y-axis of all widgets
-  const widgetsYAxis = Object.keys(groupByRow)
-
-  // grouping widgets by height and Y-axis
-  // if widget have y: 0, and height: 3 => this widget will be in row 0 and row 2
-  return widgetsYAxis.reduce((acc, val) => {
-    const widgetsInRow = groupByRow[val]
-
-    acc[val] = (acc[val] ?? []).concat(widgetsInRow)
-
-    widgetsInRow.forEach(el => {
-      for (let i = el.y; i < el.h + el.y - 1; i++) {
-        const nextYAxis = i + 1
-
-        if (nextYAxis === +val) continue
-
-        acc[nextYAxis] = (acc[nextYAxis] ?? []).concat(el)
-      }
-    })
-
-    return acc
-  }, {} as LayoutItemsByYAxis)
-}
-
 export const getLayoutItem = (layout: Layout, id: number): LayoutItem => layout.filter(l => l.i === id)[0]
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
