@@ -17,6 +17,10 @@
     "name": "Victor Poltoratchi",
     "email": "poltoratchi1369@gmail.com"
   },
+  "funding": {
+    "type" : "paypal",
+    "url" : "https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/melrose13-69/vue3-dragable-grid-layout",
