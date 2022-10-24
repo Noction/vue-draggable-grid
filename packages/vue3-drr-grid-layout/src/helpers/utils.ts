@@ -199,16 +199,14 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
   }
 
   if (horizontalShift) {
-    if (movingDirection in movingCordsData) {
+    const horizontalDirection = movingDirection === MovingDirections.LEFT || movingDirection === MovingDirections.RIGHT
+
+    if (movingDirection in movingCordsData && !(horizontalDirection && collidesWith.w < itemToMove.w && collidesWith.x !== itemToMove.x)) {
       const [x, y] = movingCordsData[movingDirection]
 
       movingCordsData.$default.x = x
       movingCordsData.$default.y = y
     }
-
-    const horizontalDirection = movingDirection === MovingDirections.LEFT || movingDirection === MovingDirections.RIGHT
-
-    if (horizontalDirection && collidesWith.w < itemToMove.w && collidesWith.x !== itemToMove.x) return layout
   }
 
   return moveElement(layout, itemToMove, movingCordsData.$default.x, movingCordsData.$default.y, horizontalShift, preventCollision)

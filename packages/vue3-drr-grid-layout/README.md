@@ -186,25 +186,6 @@ useObserver: boolean = false
 intersectionObserverConfig: object = { root: null, rootMargin: '8px', threshold: 0.40 }
 ```
 
-### Grid layout expose
-- alignGridItems - autocomplete grid items in free cells
-```vue
-<template>
-  <grid-layout
-    ref="gridLayout"
-  />
-</template>
-<script>
-export default {
-  methods: {
-    foo () {
-      this.$refs.gridLayout.alignGridItems()
-    }
-  }
-}
-</script>
-```
-
 ### Grid layout emits
 - **@container-resized**
     * **When layout container was resized**
