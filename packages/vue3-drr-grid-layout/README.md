@@ -1,6 +1,8 @@
 # vue3-drr-grid-layout
 [![npm package](https://img.shields.io/npm/v/vue3-drr-grid-layout.svg?style=flat-square)](https://www.npmjs.com/package/vue3-drr-grid-layout)
 [![npm downloads](https://img.shields.io/npm/dt/vue3-drr-grid-layout.svg?maxAge=2592000)]()
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US)
+
 
 Grid layout for vue 3 with draggable, resize, responsive events
 
@@ -186,25 +188,6 @@ useObserver: boolean = false
 intersectionObserverConfig: object = { root: null, rootMargin: '8px', threshold: 0.40 }
 ```
 
-### Grid layout expose
-- alignGridItems - autocomplete grid items in free cells
-```vue
-<template>
-  <grid-layout
-    ref="gridLayout"
-  />
-</template>
-<script>
-export default {
-  methods: {
-    foo () {
-      this.$refs.gridLayout.alignGridItems()
-    }
-  }
-}
-</script>
-```
-
 ### Grid layout emits
 - **@container-resized**
     * **When layout container was resized**
@@ -282,3 +265,7 @@ export default {
 ```ts
   unobserveItems: number[] // grid items indexes
 ``` 
+---------
+<div>
+<a href="https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US">Donate me</a>
+</div>

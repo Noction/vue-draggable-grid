@@ -1,6 +1,6 @@
 {
   "name": "vue3-drr-grid-layout",
-  "version": "1.9.2",
+  "version": "1.9.6",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "keywords": [
     "grid",
@@ -16,6 +16,10 @@
   "author": {
     "name": "Victor Poltoratchi",
     "email": "poltoratchi1369@gmail.com"
+  },
+  "funding": {
+    "type": "paypal",
+    "url": "https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US"
   },
   "repository": {
     "type": "git",
