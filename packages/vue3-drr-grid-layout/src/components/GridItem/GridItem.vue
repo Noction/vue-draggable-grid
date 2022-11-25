@@ -548,6 +548,7 @@ onMounted(() => {
       position: absolute;
       width: 20px;
       height: 20px;
+      z-index: 20;
       bottom: 0;
       right: 0;
       background-image: url('../../assets/resize.svg');
