@@ -117,7 +117,22 @@ const props = defineProps({
   y: {
     required: true,
     type: Number
-  }
+  },
+  dragIgnoreFrom: {
+    type: String,
+    required: false,
+    default: 'a, button'
+  },
+  dragAllowFrom: {
+      type: String,
+      required: false,
+      default: null
+  },
+  dragOption:{
+    type:Object,
+    required: false,
+    default: ()=>({}),
+  },
 })
 const emit = defineEmits(['container-resized', 'resize', 'resized', 'move', 'moved', 'drag-event', 'resize-event'])
 const item = ref<HTMLDivElement | null>(null)
@@ -439,7 +454,11 @@ const tryMakeDraggable = (): void => {
   }
 
   if (props.isDraggable && !props.static) {
-    interactObj.value.draggable({ ignoreFrom: 'a, button' })
+    interactObj.value.draggable({
+      ignoreFrom: props.dragIgnoreFrom,
+      allowFrom: props.dragAllowFrom,
+      ...props.dragOption
+    })
 
     if (!dragEventSet.value) {
       dragEventSet.value = true
