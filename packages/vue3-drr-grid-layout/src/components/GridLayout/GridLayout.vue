@@ -204,6 +204,7 @@ const originalLayout = ref(props.layout)
 const placeholder = ref({ h: 0, i: -1, w: 0, x: 0, y: 0 })
 const width = ref(0)
 let observer: IntersectionObserver
+let windowResizeEventWithContext: () => void
 // refs
 const wrapper = ref<HTMLDivElement | null>(null)
 
@@ -496,7 +497,7 @@ const createObserver = () => {
 // lifecycles
 onCreated()
 onBeforeUnmount(() => {
-  removeWindowEventListener('resize', onWindowResize)
+  removeWindowEventListener('resize', windowResizeEventWithContext)
 
   if (erd.value && wrapper.value) {
     erd.value.uninstall(wrapper.value)
@@ -511,6 +512,7 @@ onBeforeMount(() => {
 
 onMounted(() => {
   emit('layout-mounted', props.layout)
+  windowResizeEventWithContext = onWindowResize.bind(this)
   nextTick(() => {
     originalLayout.value = props.layout
 
@@ -518,7 +520,7 @@ onMounted(() => {
       onWindowResize()
       initResponsiveFeatures()
 
-      addWindowEventListener('resize', onWindowResize.bind(this))
+      addWindowEventListener('resize', windowResizeEventWithContext)
       compact(props.layout, props.verticalCompact)
 
       emit('update:layout', props.layout)
