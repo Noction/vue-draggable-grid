@@ -509,7 +509,7 @@ onBeforeUnmount(() => {
   emitter?.off('set-col-num', setColNum)
 
   if (interactObj.value) {
-    interactObj.value.unset()
+    interact(item.value).unset()
   }
 
   if (props.observer) {
