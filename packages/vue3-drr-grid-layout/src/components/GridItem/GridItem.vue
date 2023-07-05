@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { CSSProperties } from 'vue'
+import { CSSProperties, toRaw } from 'vue'
 import { emitterKey } from '../../types/symbols'
 import { getColsFromBreakpoint } from '../../helpers/responsiveUtils'
 import interact from '@interactjs/interactjs'
@@ -509,7 +509,7 @@ onBeforeUnmount(() => {
   emitter?.off('set-col-num', setColNum)
 
   if (interactObj.value) {
-    interact(item.value).unset()
+    toRaw(interactObj.value).unset()
   }
 
   if (props.observer) {
