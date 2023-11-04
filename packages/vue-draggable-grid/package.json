@@ -1,5 +1,5 @@
 {
-  "name": "vue3-drr-grid-layout",
+  "name": "@noction/vue-draggable-grid",
   "version": "1.9.7",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "keywords": [
@@ -23,12 +23,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/melrose13-69/vue3-dragable-grid-layout",
+    "url": "https://github.com/Noction/draggable-grid",
     "directory": "packages/vue3-drr-grid-layout"
   },
-  "homepage": "https://github.com/melrose13-69/vue3-dragable-grid-layout/tree/dev/packages/vue3-drr-grid-layout",
+  "homepage": "https://github.com/Noction/draggable-grid/tree/dev/packages/vue3-drr-grid-layout",
   "bugs": {
-    "url": "https://github.com/melrose13-69/vue3-dragable-grid-layout/issues",
+    "url": "https://github.com/Noction/draggable-grid/issues",
     "email": "poltoratchi1369@gmail.com"
   },
   "files": [
@@ -39,7 +39,8 @@
   "module": "dist/vue3-drr-grid-layout.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite",
+    "build:watch": "vite build --watch",
     "build": "cross-env NODE_ENV=production vite build && tsc -d --emitDeclarationOnly && vue-typegen gen -s src -o dist",
     "preview": "vite preview",
     "lint:es": "eslint \"src/**/*.{js,ts,vue}\" --fix --color",

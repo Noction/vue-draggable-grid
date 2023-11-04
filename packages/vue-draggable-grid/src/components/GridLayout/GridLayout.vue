@@ -537,8 +537,8 @@ onMounted(() => {
 </script>
 
 <style>
-.vue-grid-layout {
-  position: relative;
-  transition: height 200ms ease;
-}
+  .vue-grid-layout {
+    position: relative;
+    transition: height 200ms ease;
+  }
 </style>

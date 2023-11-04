@@ -1,6 +1,5 @@
 {
   "name": "demo",
-  "version": "1.9.7",
   "scripts": {
     "dev": "vite",
     "preview": "vite preview",
@@ -9,7 +8,7 @@
   },
   "dependencies": {
     "vue": "^3.2.0",
-    "vue3-drr-grid-layout": "^1.9.7"
+    "@noction/vue-draggable-grid": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^18.7.18",
