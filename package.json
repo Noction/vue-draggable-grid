@@ -1,15 +1,13 @@
 {
-  "name": "res",
-  "version": "1.0.0",
+  "name": "@noction/vue-draggable-grid-monorepo",
+  "version": "1.9.7",
   "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "version": "lerna version",
-    "build": "lerna run build --ignore demo",
-    "lint": "npm run lint:es; npm run lint:style",
-    "lint:es": "lerna run lint:es --no-bail --parallel",
-    "lint:style": "lerna run lint:style --no-bail --parallel",
-    "test": "lerna run test --ignore demo",
-    "test:coverage": "lerna run test:coverage --ignore demo"
+    "build": "pnpm -F @noction/vue-draggable-grid build",
+    "lint": "pnpm -r \"/^lint:.*/\"",
+    "lint:es": "pnpm -r lint:es",
+    "lint:style": "pnpm -r lint:style",
+    "test": "pnpm -F @noction/vue-draggable-grid test",
+    "test:coverage": "pnpm -F @noction/vue-draggable-grid test:coverage"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.33.0",
@@ -30,7 +28,9 @@
     "typescript": "^4.7.4",
     "vue-eslint-parser": "^9.0.3"
   },
-  "dependencies": {
-    "lerna": "^5.4.0"
-  }
+  "engines": {
+    "node": ">=18",
+    "pnpm": "^8"
+  },
+  "packageManager": "pnpm@8.9.2"
 }

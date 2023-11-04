@@ -1,8 +1,6 @@
 import App from './App.vue'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import GridLayout from '../../vue3-drr-grid-layout/dist/vue3-drr-grid-layout.mjs'
-import  '../../vue3-drr-grid-layout/dist/style.css'
+import GridLayout from '@noction/vue-draggable-grid/dist/vue3-drr-grid-layout.mjs'
+import '@noction/vue-draggable-grid/dist/style.css'
 import { createApp } from 'vue'
 
 const app = createApp(App)

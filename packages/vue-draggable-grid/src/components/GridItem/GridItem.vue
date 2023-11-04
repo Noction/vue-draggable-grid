@@ -529,54 +529,54 @@ onMounted(() => {
 
 <style lang="scss">
   .vue-grid-item {
-    touch-action: none;
     box-sizing: border-box;
+    touch-action: none;
+    background-color: #f2f2f2;
     transition: all 200ms ease;
     transition-property: left, top, right;
-    background-color: #f2f2f2;
 
     &.no-touch {
       touch-action: none;
     }
 
     &.css-transforms {
-      transition-property: transform;
-      left: 0;
       right: auto;
+      left: 0;
+      transition-property: transform;
     }
 
     &.resizing {
-      opacity: 0.6;
       z-index: 3;
+      opacity: .6;
     }
 
     &.vue-draggable-dragging {
-      transition:none;
       z-index: 3;
+      transition: none;
     }
 
     &.vue-grid-placeholder {
-      background: red;
-      opacity: 0.2;
-      transition-duration: 100ms;
       z-index: 2;
       user-select: none;
+      background: red;
+      opacity: .2;
+      transition-duration: 100ms;
     }
 
     & > .vue-resizable-handle {
       position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      box-sizing: border-box;
       width: 20px;
       height: 20px;
-      z-index: 20;
-      bottom: 0;
-      right: 0;
-      background-image: url('../../assets/resize.svg');
-      background-position: bottom right;
-      background-repeat: no-repeat;
       padding: 0 3px 3px 0;
-      background-origin: content-box;
-      box-sizing: border-box;
       cursor: se-resize;
+      background-image: url("../../assets/resize.svg");
+      background-repeat: no-repeat;
+      background-position: bottom right;
+      background-origin: content-box;
     }
 
     &.disable-user-select {
