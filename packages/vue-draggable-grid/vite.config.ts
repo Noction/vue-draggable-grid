@@ -4,9 +4,10 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   build: {
-    emptyOutDir: true,
+    emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, './src/components/index.ts'),
+      formats: ['es', 'cjs'],
       name: 'vue-draggable-grid'
     },
     rollupOptions: {
