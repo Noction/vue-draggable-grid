@@ -1,28 +1,16 @@
-import * as path from 'path'
 import { defineConfig } from 'vite'
+import { resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   build: {
     emptyOutDir: true,
-    lib: {
-      entry: path.resolve(__dirname, './src/components/index.ts'),
-      fileName: 'vue-3-grid-layout',
-      name: 'GridLayout'
-    },
-    rollupOptions: {
-      external: ['vue'],
-      output: {
-        globals: {
-          vue: 'Vue'
-        }
-      }
-    }
+    outDir: resolve(__dirname, '..', '..', 'docs')
   },
   plugins: [vue()],
   resolve:{
     alias:{
-      '@' : path.resolve(__dirname, './src')
+      '@' : resolve(__dirname, './src')
     }
   }
 })
