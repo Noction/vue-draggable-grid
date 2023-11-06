@@ -1,6 +1,7 @@
 {
   "name": "@noction/vue-draggable-grid",
   "version": "1.9.10",
+  "type": "module",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "keywords": [
     "grid",
@@ -27,32 +28,40 @@
     "email": "poltoratchi1369@gmail.com"
   },
   "files": [
+    "*.d.ts",
     "dist"
   ],
   "license": "MIT",
-  "main": "dist/vue-draggable-grid.mjs",
-  "module": "dist/vue-draggable-grid.mjs",
+  "main": "dist/vue-draggable-grid.js",
+  "module": "dist/vue-draggable-grid.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/vue-draggable-grid.mjs",
-      "default": "./dist/vue-draggable-grid.mjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/vue-draggable-grid.js",
+      "require": "./dist/vue-draggable-grid.cjs",
+      "default": "./dist/vue-draggable-grid.js"
     },
     "./styles": {
       "import": "./dist/style.css",
       "default": "./dist/style.css"
     },
-    "./*": "./*"
+    "./types": {
+      "import": "./dist/index.d.ts",
+      "require": "./dist/index.d.ts",
+      "default": "./dist/index.d.ts"
+    }
   },
   "scripts": {
     "dev": "vite",
     "build:watch": "vite build --watch",
-    "build": "cross-env NODE_ENV=production vite build && tsc -d --emitDeclarationOnly && vue-typegen gen -s src -o dist",
+    "build": "cross-env NODE_ENV=production vue-tsc --declaration --emitDeclarationOnly && vite build",
     "preview": "vite preview",
     "lint:es": "eslint \"src/**/*.{js,ts,vue}\" --fix --color",
     "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "typecheck": "vue-tsc --noEmit",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
