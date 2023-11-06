@@ -1,6 +1,6 @@
 {
   "name": "@noction/vue-draggable-grid",
-  "version": "1.9.8",
+  "version": "1.9.9",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "keywords": [
     "grid",
@@ -17,16 +17,11 @@
     "name": "Victor Poltoratchi",
     "email": "poltoratchi1369@gmail.com"
   },
-  "funding": {
-    "type": "paypal",
-    "url": "https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Noction/draggable-grid",
-    "directory": "packages/vue3-drr-grid-layout"
+    "directory": "packages/vue-draggable-grid"
   },
-  "homepage": "https://github.com/Noction/draggable-grid/tree/dev/packages/vue3-drr-grid-layout",
   "bugs": {
     "url": "https://github.com/Noction/draggable-grid/issues",
     "email": "poltoratchi1369@gmail.com"
@@ -35,9 +30,20 @@
     "dist"
   ],
   "license": "MIT",
-  "main": "dist/vue3-drr-grid-layout.umd.js",
-  "module": "dist/vue3-drr-grid-layout.mjs",
+  "main": "dist/vue-draggable-grid.umd.js",
+  "module": "dist/vue-draggable-grid.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-draggable-grid.mjs",
+      "default": "./dist/vue-draggable-grid.mjs"
+    },
+    "./styles": {
+      "import": "./dist/style.css",
+      "default": "./dist/style.css"
+    },
+    "./*": "./*"
+  },
   "scripts": {
     "dev": "vite",
     "build:watch": "vite build --watch",

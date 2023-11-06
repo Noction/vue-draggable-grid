@@ -1,12 +1,10 @@
-# vue3-drr-grid-layout
-[![npm package](https://img.shields.io/npm/v/vue3-drr-grid-layout.svg?style=flat-square)](https://www.npmjs.com/package/vue3-drr-grid-layout)
-[![npm downloads](https://img.shields.io/npm/dt/vue3-drr-grid-layout.svg?maxAge=2592000)]()
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US)
+# vue-draggable-grid
+[![NPM package](https://img.shields.io/npm/v/@noction/vue-draggable-grid.svg?style=flat-square)](https://www.npmjs.com/package/@noction/vue-draggable-grid)
 
+[![NPM all-time downloads](https://img.shields.io/npm/dt/@noction/vue-draggable-grid.svg?maxAge=2592000)]()
+[![NPM monthly downloads](https://img.shields.io/npm/dm/@noction/vue-draggable-grid.svg?style=flat)](https://npmjs.com/package/@noction/vue-draggable-grid)
 
 Grid layout for vue 3 with draggable, resize, responsive events
-
-Module use source code from [VueGridLayout](https://www.npmjs.com/package/vue-grid-layout)
 
 Rewrote to TypeScript, Composition API and migrated to Vue3
 
@@ -15,12 +13,12 @@ Rewrote to TypeScript, Composition API and migrated to Vue3
 ```js
   import { createApp } from 'vue'
   import App from './App.vue'
-  import GridLayout from 'vue3-drr-grid-layout'
-  import 'vue3-drr-grid-layout/dist/style.css'
+  import VueDraggableGrid from '@noction/vue-draggable-grid'
+  import '@noction/vue-draggable-grid/styles'
 
   const app = createApp(App)
 
-  app.use(GridLayout)
+  app.use(VueDraggableGrid)
 
   app.mount('#app')
 ```
@@ -265,7 +263,3 @@ intersectionObserverConfig: object = { root: null, rootMargin: '8px', threshold:
 ```ts
   unobserveItems: number[] // grid items indexes
 ``` 
----------
-<div>
-<a href="https://paypal.me/poltoratchi1?country.x=MD&locale.x=en_US">Donate me</a>
-</div>
