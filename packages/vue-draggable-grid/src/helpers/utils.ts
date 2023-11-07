@@ -2,7 +2,6 @@ import { CSSProperties } from 'vue'
 import {
   Layout,
   LayoutItem,
-  LayoutItemsByYAxis,
   MovingDirection,
   MovingDirections,
   setPositionFnc
@@ -72,7 +71,7 @@ export const compactItem = (compareWith: Layout, l: LayoutItem, verticalCompact:
     }
   }
 
-  let collides
+  let collides: LayoutItem | void
 
   while ((collides = getFirstCollision(compareWith, l))) {
     l.y = collides.y + collides.h

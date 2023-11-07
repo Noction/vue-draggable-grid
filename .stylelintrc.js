@@ -9,19 +9,15 @@ module.exports = {
     'no-empty-source': null,
     'block-no-empty': null,
     'unit-allowed-list': ['px', 'em', 'rem', 's', '%', 'vh', 'vw', 'fr', 'deg', 'cm'],
-    'color-function-notation': null, // should be enabled later
+    'color-function-notation': null,
     'comment-no-empty': true,
     'no-descending-specificity': null,
-    'no-extra-semicolons': true,
-    'number-leading-zero': 'never',
-    'indentation': [2, { 'baseIndentLevel': 1 }],
     'font-weight-notation': 'numeric',
     'comment-empty-line-before': null,
     'comment-whitespace-inside': null,
     'at-rule-no-unknown': null,
     'scss/at-rule-no-unknown': true,
     'declaration-no-important': true,
-    'selector-pseudo-element-no-unknown': true,
-    'selector-pseudo-class-no-unknown': [true, { ignorePseudoElements: ['deep'] }]
+    'selector-pseudo-element-no-unknown': true
   }
 }

@@ -33,6 +33,8 @@ import {
 import { createCoreData, getControlPosition } from '../../helpers/draggableUtils'
 import { setTopLeft, setTransform, stringReplacer } from '../../helpers/utils'
 
+// eslint-disable-next-line
+// @ts-ignore
 const props = defineProps({
   breakpointCols: {
     required: true,
@@ -45,6 +47,21 @@ const props = defineProps({
   containerWidth: {
     required: true,
     type: Number
+  },
+  dragAllowFrom: {
+    default: null,
+    required: false,
+    type: String
+  },
+  dragIgnoreFrom: {
+    default: 'a, button',
+    required: false,
+    type: String
+  },
+  dragOption: {
+    default: () => ({}),
+    required: false,
+    type: Object
   },
   h: {
     required: true,
@@ -117,22 +134,7 @@ const props = defineProps({
   y: {
     required: true,
     type: Number
-  },
-  dragIgnoreFrom: {
-    type: String,
-    required: false,
-    default: 'a, button'
-  },
-  dragAllowFrom: {
-      type: String,
-      required: false,
-      default: null
-  },
-  dragOption:{
-    type:Object,
-    required: false,
-    default: ()=>({}),
-  },
+  }
 })
 const emit = defineEmits(['container-resized', 'resize', 'resized', 'move', 'moved', 'drag-event', 'resize-event'])
 const item = ref<HTMLDivElement | null>(null)
@@ -144,6 +146,7 @@ const cols = ref(props.colNum)
 const dragEventSet = ref(false)
 const dragging = ref<{ left?: number; top?: number }>({})
 const inner = ref<Inner<number>>({ h: props.h, w: props.w, x: props.x, y: props.y })
+// eslint-disable-next-line
 const interactObj = ref<any>(null)
 const isDragging = ref(false)
 const isResizing = ref(false)
@@ -174,6 +177,8 @@ const resizableAndNotStatic = computed((): boolean => props.isResizable && !prop
 watch(() => props.observer, () => {
   if (props.observer && item.value) {
     props.observer.observe(item.value)
+    // eslint-disable-next-line
+    // @ts-ignore
     item.value.__INTERSECTION_OBSERVER_INDEX__ = props.i
   }
 })
@@ -282,7 +287,11 @@ const createStyle = (): void => {
   }
 
   if (isResizing.value) {
+    // eslint-disable-next-line
+    // @ts-ignore
     pos.width = resizing?.value?.width ?? 0
+    // eslint-disable-next-line
+    // @ts-ignore
     pos.height = resizing?.value?.height ?? 0
   }
 
@@ -298,6 +307,8 @@ const emitContainerResized = () => {
 
   for (const prop of ['width', 'height']) {
     const val = style.props[prop as 'width' | 'height']
+    // eslint-disable-next-line
+    // @ts-ignore
     const matches = val?.toString().match(/^(\d+)px$/)
 
     if (!matches) return
@@ -313,6 +324,8 @@ const emitContainerResized = () => {
     width: styleProps.width
   })
 }
+
+// eslint-disable-next-line
 const handleDrag = (event: any): void  => {
   if (props.static || isResizing.value) return
 
@@ -375,8 +388,12 @@ const handleDrag = (event: any): void  => {
     emit('moved', props.i, pos.x, pos.y)
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
   emitter?.emit('drag-event', [event.type, props.i, pos.x, pos.y, inner.value.h, inner.value.w])
 }
+
+// eslint-disable-next-line
 const handleResize = (event: any): void => {
   if (props.static) return
 
@@ -404,7 +421,11 @@ const handleResize = (event: any): void => {
     case 'resizemove': {
       const coreEvent = createCoreData(lastInner.value.x, lastInner.value.h, x, y)
 
+      // eslint-disable-next-line
+      // @ts-ignore
       newSize.width = (resizing?.value?.width ?? 0) + coreEvent.deltaX
+      // eslint-disable-next-line
+      // @ts-ignore
       newSize.height = (resizing?.value?.height ?? 0) + coreEvent.deltaY
 
       resizing.value = newSize
@@ -443,6 +464,8 @@ const handleResize = (event: any): void => {
     emit('resized', props.i, pos.h, pos.w, newSize.height, newSize.width)
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
   emitter?.emit('resize-event', [event.type, props.i, inner.value.x, inner.value.y, pos.h, pos.w])
 }
 const setColNum = (colNum: number): void => {
@@ -455,8 +478,8 @@ const tryMakeDraggable = (): void => {
 
   if (props.isDraggable && !props.static) {
     interactObj.value.draggable({
-      ignoreFrom: props.dragIgnoreFrom,
       allowFrom: props.dragAllowFrom,
+      ignoreFrom: props.dragIgnoreFrom,
       ...props.dragOption
     })
 
@@ -486,6 +509,8 @@ const tryMakeResizable = (): void => {
       }
     }
 
+    // eslint-disable-next-line
+    // @ts-ignore
     interactObj.value.resizable(opts)
 
     if (!resizeEventSet.value) {
@@ -493,6 +518,8 @@ const tryMakeResizable = (): void => {
       interactObj.value.on('resizestart resizemove resizeend', handleResize)
     }
   } else {
+    // eslint-disable-next-line
+    // @ts-ignore
     interactObj.value.resizable({ enabled: false })
   }
 }
@@ -509,6 +536,8 @@ onBeforeUnmount(() => {
   emitter?.off('set-col-num', setColNum)
 
   if (interactObj.value) {
+    // eslint-disable-next-line
+    // @ts-ignore
     interactObj.value.unset()
   }
 
@@ -532,7 +561,7 @@ onMounted(() => {
     box-sizing: border-box;
     touch-action: none;
     background-color: #f2f2f2;
-    transition: all 200ms ease;
+    transition: all .2s ease;
     transition-property: left, top, right;
 
     &.no-touch {
@@ -560,7 +589,7 @@ onMounted(() => {
       user-select: none;
       background: red;
       opacity: .2;
-      transition-duration: 100ms;
+      transition-duration: .1s;
     }
 
     & > .vue-resizable-handle {
