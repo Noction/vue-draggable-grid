@@ -41,7 +41,6 @@ import {
   Breakpoints,
   BreakpointsKeys,
   Layout,
-  LayoutItem,
   RecordBreakpoint,
   ResponsiveLayout
 } from '../../types/helpers'
@@ -65,7 +64,6 @@ import {
   cloneLayout,
   compact,
   getAllCollisions,
-  getGroupWidgetByHeightInAxis,
   getLayoutItem,
   moveElement
 } from '../../helpers/utils'
@@ -147,6 +145,8 @@ const props = defineProps({
 
       if (!layoutKeys.length) return true
 
+      // eslint-disable-next-line
+      // @ts-ignore
       const validator = layoutKeys.map((k: BreakpointsKeys) => layoutValidator(value[k]))
 
       return !validator.includes(false)
@@ -286,6 +286,7 @@ const observerCallback = entries => {
   emit('intersection-unobserve', observerItems.unobserve)
 }
 
+// eslint-disable-next-line
 const layoutItemOptional = (props: { [key: string]: any }) => {
   const requiredKeys = Object.keys(layoutItemRequired)
 
@@ -301,6 +302,8 @@ const layoutItemOptional = (props: { [key: string]: any }) => {
 const layoutUpdate = (): void => {
   if (props.layout && originalLayout.value) {
     if (props.layout.length !== originalLayout.value.length) {
+      // eslint-disable-next-line
+      // @ts-ignore
       const diff = findDifference(props.layout, originalLayout.value)
       // TODO
 
@@ -308,6 +311,8 @@ const layoutUpdate = (): void => {
         if (props.layout.length > originalLayout.value.length) {
           originalLayout.value = originalLayout.value.concat(diff)
         } else {
+          // eslint-disable-next-line
+          // @ts-ignore
           originalLayout.value = originalLayout.value.filter(obj => {
             return !diff.some(obj2 => {
               return obj.i === obj2.i
@@ -335,6 +340,8 @@ const findDifference = (layout: Layout, originalLayout: Layout): Layout => {
   return uniqueResultOne.concat(uniqueResultTwo)
 }
 const initResponsiveFeatures = (): void => {
+  // eslint-disable-next-line
+  // @ts-ignore
   layouts.value = Object.assign({}, props.responsiveLayouts)
 }
 const updateHeight = (): void => {
@@ -351,6 +358,8 @@ const containerHeight = (): string | undefined => {
 }
 const onWindowResize = (): void => {
   if (wrapper.value) {
+    // eslint-disable-next-line
+    // @ts-ignore
     width.value = wrapper.value.offsetWidth
   }
 }
@@ -359,9 +368,13 @@ const responsiveGridLayout = (): void => {
   const newCols = getColsFromBreakpoint(newBreakpoint, props.cols)
 
   if (lastBreakpoint.value && !layouts.value[lastBreakpoint.value]) {
+    // eslint-disable-next-line
+    // @ts-ignore
     layouts.value[lastBreakpoint.value] = cloneLayout(props.layout)
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
   const layout = findOrGenerateResponsiveLayout(
     originalLayout.value,
     layouts.value,
@@ -372,6 +385,8 @@ const responsiveGridLayout = (): void => {
     props.verticalCompact
   )
 
+  // eslint-disable-next-line
+  // @ts-ignore
   layouts.value[newBreakpoint] = layout
 
   if (lastBreakpoint.value !== newBreakpoint) {
@@ -484,6 +499,8 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
 }
 
 const createObserver = () => {
+  // eslint-disable-next-line
+  // @ts-ignore
   observer = new IntersectionObserver(observerCallback, {
     root: null,
     rootMargin: '8px',
@@ -491,7 +508,6 @@ const createObserver = () => {
     ...props.intersectionObserverConfig
   })
 }
-
 
 // lifecycles
 onCreated()
@@ -539,6 +555,6 @@ onMounted(() => {
 <style>
   .vue-grid-layout {
     position: relative;
-    transition: height 200ms ease;
+    transition: height .2s ease;
   }
 </style>

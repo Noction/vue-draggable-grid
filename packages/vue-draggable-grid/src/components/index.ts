@@ -1,3 +1,4 @@
+import { App } from 'vue'
 import GridItem from './GridItem/GridItem.vue'
 import GridLayout from './GridLayout/GridLayout.vue'
 
@@ -11,8 +12,10 @@ export {
   GridLayout
 }
 
-function install (app: any) {
-  if (app.$_v3DRRGridLayout) return
+type AppWithDraggableGrid = App & { $_v3DRRGridLayout?: true}
+
+function install (app: AppWithDraggableGrid) {
+  if ('$_v3DRRGridLayout' in app && app.$_v3DRRGridLayout) return
 
   app.$_v3DRRGridLayout = true
 

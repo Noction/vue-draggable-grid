@@ -1,5 +1,6 @@
 const isNum = (num: number) => !isNaN(num)
 
+// eslint-disable-next-line
 const offsetXYFromParentOf = (evt: any) => {
   const offsetParent = evt.target.offsetParent || document.body
   const offsetParentRect = evt.offsetParent === document.body ? { left: 0, top: 0 } : offsetParent.getBoundingClientRect()
@@ -17,4 +18,5 @@ export const createCoreData = (lastX: number, lastY: number, x: number, y: numbe
     : { deltaX: x - lastX, deltaY: y - lastY, lastX, lastY, x, y }
 }
 
+// eslint-disable-next-line
 export const getControlPosition = (e: any) => offsetXYFromParentOf(e)

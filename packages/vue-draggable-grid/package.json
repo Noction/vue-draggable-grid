@@ -52,10 +52,18 @@
       "default": "./dist/index.d.ts"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build:watch": "vite build --watch",
-    "build": "cross-env NODE_ENV=production vue-tsc --declaration --emitDeclarationOnly && vite build",
+    "build": "cross-env NODE_ENV=production vite build && vue-tsc --declaration --emitDeclarationOnly",
     "preview": "vite preview",
     "lint:es": "eslint \"src/**/*.{js,ts,vue}\" --fix --color",
     "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix",
@@ -91,7 +99,6 @@
     "vitest": "^0.34.6",
     "vue-eslint-parser": "^9.3.2",
     "vue-template-compiler": "^2.7.15",
-    "vue-tsc": "^1.8.22",
-    "vue-typegen": "^0.2.0"
+    "vue-tsc": "^1.8.22"
   }
 }
