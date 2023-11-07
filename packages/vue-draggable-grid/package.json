@@ -1,6 +1,6 @@
 {
   "name": "@noction/vue-draggable-grid",
-  "version": "1.9.9",
+  "version": "1.9.10",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "keywords": [
     "grid",
@@ -30,7 +30,7 @@
     "dist"
   ],
   "license": "MIT",
-  "main": "dist/vue-draggable-grid.umd.js",
+  "main": "dist/vue-draggable-grid.mjs",
   "module": "dist/vue-draggable-grid.mjs",
   "types": "dist/index.d.ts",
   "exports": {
@@ -52,7 +52,8 @@
     "lint:es": "eslint \"src/**/*.{js,ts,vue}\" --fix --color",
     "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix",
     "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@interactjs/actions": "^1.10.17",
