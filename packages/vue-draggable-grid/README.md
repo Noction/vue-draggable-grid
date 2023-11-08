@@ -1,8 +1,7 @@
 # vue-draggable-grid
 [![NPM package](https://img.shields.io/npm/v/@noction/vue-draggable-grid.svg?style=flat-square)](https://www.npmjs.com/package/@noction/vue-draggable-grid)
-
-[![NPM all-time downloads](https://img.shields.io/npm/dt/@noction/vue-draggable-grid.svg?maxAge=2592000)]()
 [![NPM monthly downloads](https://img.shields.io/npm/dm/@noction/vue-draggable-grid.svg?style=flat)](https://npmjs.com/package/@noction/vue-draggable-grid)
+[![codecov](https://codecov.io/gh/Noction/vue-draggable-grid/branch/main/graph/badge.svg?token=C5NGW1BC2N)](https://codecov.io/gh/Noction/vue-draggable-grid)
 
 Grid layout for vue 3 with draggable, resize, responsive events
 
