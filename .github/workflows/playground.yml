@@ -34,6 +34,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup
+        run: npm i -g @antfu/ni
+
       - name: Install
         run: nci
 
