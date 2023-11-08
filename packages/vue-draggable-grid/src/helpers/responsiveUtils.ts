@@ -1,6 +1,8 @@
 import { Breakpoints, BreakpointsKeys, findOrGenerateResponsiveLayoutFnc } from '../types/helpers'
 import { cloneLayout, compact, correctBounds } from './utils'
 
+// eslint-disable-next-line
+// @ts-ignore
 export const findOrGenerateResponsiveLayout: findOrGenerateResponsiveLayoutFnc = (orgLayout, layouts, breakpoints, breakpoint, lastBreakpoint, cols, verticalCompact)  => {
   if (Object.prototype.hasOwnProperty.call(layouts, breakpoint)) {
     return cloneLayout(layouts[breakpoint] || [])

@@ -18,13 +18,13 @@
     "types": ["vitest/globals"],
   },
   "include": [
-    "src/*.d.ts",
-    "src/components/*.vue",
-    "src/components/index.ts"
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    "test/**/*.spec.ts"
   ],
   "exclude": [
-    "./node_modules/*",
-    "./node_modules/**",
+    "./node_modules",
     "./dist"
   ],
   "references": [
