@@ -266,19 +266,27 @@ watch(() => props.useObserver, value => {
   createObserver()
 })
 // methods
+// eslint-disable-next-line
+// @ts-ignore
 const observerCallback = entries => {
   const observerItems = {
     observe: [],
     unobserve: []
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
   entries.forEach(({ target, isIntersecting }) => {
 
     if (isIntersecting) {
+      // eslint-disable-next-line
+      // @ts-ignore
       observerItems.observe.push(target.__INTERSECTION_OBSERVER_INDEX__)
       return
     }
 
+    // eslint-disable-next-line
+    // @ts-ignore
     observerItems.unobserve.push(target.__INTERSECTION_OBSERVER_INDEX__)
   })
 
@@ -292,7 +300,11 @@ const layoutItemOptional = (props: { [key: string]: any }) => {
 
   return (Object.keys(props) as (keyof typeof props)[])
     .reduce((acc, val) => {
+      // eslint-disable-next-line
+      // @ts-ignore
       if (layoutItemOptionalKeys.includes(val) || requiredKeys.includes(val)) {
+        // eslint-disable-next-line
+        // @ts-ignore
         acc[val] = props[val]
       }
       return acc
@@ -381,6 +393,8 @@ const responsiveGridLayout = (): void => {
     props.breakpoints,
     newBreakpoint,
     lastBreakpoint.value,
+    // eslint-disable-next-line
+    // @ts-ignore
     newCols,
     props.verticalCompact
   )

@@ -526,6 +526,8 @@ const tryMakeResizable = (): void => {
 
 const onCreate = () => {
   emitter?.on('recalculate-styles', createStyle)
+  // eslint-disable-next-line
+  // @ts-ignore
   emitter?.on('set-col-num', setColNum)
 }
 // lifecycle
@@ -533,6 +535,8 @@ const onCreate = () => {
 onCreate()
 onBeforeUnmount(() => {
   emitter?.off('recalculate-styles', createStyle)
+  // eslint-disable-next-line
+  // @ts-ignore
   emitter?.off('set-col-num', setColNum)
 
   if (interactObj.value) {

@@ -7,7 +7,8 @@
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "lint:es": "eslint \"src/**/*.{js,ts,vue}\" --fix --color",
-    "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix"
+    "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix",
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@noction/vue-draggable-grid": "workspace:*",
