@@ -131,8 +131,13 @@ jobs:
       - name: Install
         run: nci
 
-      - name: Build
-        run: nr build
-
       - name: Test
-        run: nr test
+        run: nr test:coverage
+
+      - name: Submitting test coverage to CodeCov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./packages/vue-draggable-grid
+          fail_ci_if_error: true
+          files: ./packages/vue-draggable-grid/coverage/cobertura-coverage.xml
