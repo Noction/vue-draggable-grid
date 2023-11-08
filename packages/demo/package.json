@@ -2,7 +2,7 @@
   "name": "demo",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly",
+    "build": "cross-env NODE_ENV=production vite build && vue-tsc --declaration --emitDeclarationOnly",
     "preview": "vite preview",
     "test": "vitest",
     "coverage": "vitest run --coverage",
@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@noction/vue-draggable-grid": "workspace:*",
-    "vue": "^3.3.8"
+    "vue": "^3.3.8",
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
     "vue-tsc": "^1.8.22",
