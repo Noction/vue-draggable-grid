@@ -481,6 +481,9 @@ const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   }
 }
 
+let xBeforeDrag: number = 0
+let yBeforeDrag: number = 0
+
 const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
   const layoutItem = getLayoutItem(props.layout, id)
   const l = layoutItem ?? { ...layoutItemRequired }
@@ -500,17 +503,33 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
     })
   }
 
-  emit('update:layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
+  //store initial position to restore if maxRows condition not met
+  if (eventName === 'dragstart') {
+    xBeforeDrag = l.x
+    yBeforeDrag = l.y
+  }
+
+  let goesBeyondMaxRows = false
+
+  if (eventName === 'dragend') {
+    //check if any items are over maxRows
+    goesBeyondMaxRows = props.layout.some(item => {
+      return item.y + item.h > props.maxRows
+    })
+
+    if (goesBeyondMaxRows) {
+      emit('update:layout', moveElement(props.layout, l, xBeforeDrag, yBeforeDrag, true, props.horizontalShift, props.preventCollision))
+      goesBeyondMaxRows = false
+    }
+    emit('layout-updated', props.layout)
+  } else {
+    emit('update:layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
+  }
 
   compact(props.layout, props.verticalCompact)
 
   emitter.emit('recalculate-styles')
   updateHeight()
-
-  if (eventName === 'dragend') {
-    compact(props.layout, props.verticalCompact)
-    emit('layout-updated', props.layout)
-  }
 }
 
 const createObserver = () => {
@@ -568,8 +587,8 @@ onMounted(() => {
 </script>
 
 <style>
-  .vue-grid-layout {
-    position: relative;
-    transition: height .2s ease;
-  }
+.vue-grid-layout {
+  position: relative;
+  transition: height .2s ease;
+}
 </style>
