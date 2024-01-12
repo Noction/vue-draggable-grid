@@ -16,6 +16,11 @@
     "checkJs": false,
     "baseUrl": ".",
     "types": ["vitest/globals"],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
