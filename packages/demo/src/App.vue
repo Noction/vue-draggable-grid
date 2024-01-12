@@ -27,7 +27,7 @@ export default defineComponent({
       colNum: 6,
       editable: false,
       layout: [
-        { h: 2, i: 0, w: 2, x: 0, y: 0 },
+        { h: 2, i: '0', w: 2, x: 0, y: 0 },
         { h: 2, i: 1, w: 2, x: 2, y: 0 },
         { h: 2, i: 2, w: 2, x: 4, y: 0 },
         { h: 2, i: 3, w: 2, x: 0, y: 2 },
