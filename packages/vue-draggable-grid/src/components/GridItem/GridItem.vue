@@ -69,7 +69,7 @@ const props = defineProps({
   },
   i: {
     required: true,
-    type: Number
+    type: [Number, String]
   },
   isDraggable: {
     required: true,

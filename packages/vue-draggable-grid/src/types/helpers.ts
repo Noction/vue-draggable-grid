@@ -17,7 +17,7 @@ export type LayoutItemOptional = {
   isResizable?: boolean
 }
 
-export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: number }
+export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: number|string }
 
 export type LayoutItemsByYAxis = {
   [K in string]: LayoutItem[]
