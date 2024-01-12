@@ -7,6 +7,7 @@
     "lint:style": "pnpm -P -r lint:style",
     "typecheck": "pnpm -P -r typecheck",
     "build": "pnpm -P -r build",
+    "build:lib": "pnpm -F vue-draggable-grid build",
     "test": "pnpm -F @noction/vue-draggable-grid test",
     "test:coverage": "pnpm -F @noction/vue-draggable-grid test:coverage",
     "prepare": "simple-git-hooks",
