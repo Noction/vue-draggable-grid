@@ -1,5 +1,6 @@
 {
   "name": "demo",
+  "version": "1.9.13",
   "scripts": {
     "dev": "vite",
     "build": "cross-env NODE_ENV=production vite build && vue-tsc --declaration --emitDeclarationOnly",
@@ -10,11 +11,11 @@
     "lint:style": "stylelint src/**/*.{css,scss,vue} --color --fix",
     "typecheck": "vue-tsc --noEmit"
   },
-  "dependencies": { 
+  "dependencies": {
     "@noction/vue-draggable-grid": "workspace:*",
     "cross-env": "^7.0.3",
     "vue": "^3.3.8"
-  }, 
+  },
   "devDependencies": {
     "@types/node": "^18.18.8",
     "@vitejs/plugin-vue": "^5.0.3",
