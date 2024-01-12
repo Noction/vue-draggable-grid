@@ -3,6 +3,7 @@
   "version": "1.9.12",
   "type": "module",
   "description": "Vue3 grid layout with resize, drag and responsive",
+  "homepage": "https://noction.github.io/vue-draggable-grid/",
   "keywords": [
     "grid",
     "grid-layout",
@@ -15,50 +16,31 @@
     "typescript"
   ],
   "author": {
-    "name": "Victor Poltoratchi",
-    "email": "poltoratchi1369@gmail.com"
+    "name": "Mihai Plamadeala",
+    "email": "plamadeala.mihai002@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Noction/draggable-grid.git",
-    "directory": "packages/vue-draggable-grid"
+    "url": "git+https://github.com/Noction/draggable-grid.git"
   },
   "bugs": {
     "url": "https://github.com/Noction/draggable-grid/issues",
-    "email": "poltoratchi1369@gmail.com"
+    "email": "plamadeala.mihai002@gmail.com"
   },
   "files": [
-    "*.d.ts",
     "dist"
   ],
   "license": "MIT",
-  "main": "dist/vue-draggable-grid.js",
-  "module": "dist/vue-draggable-grid.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/vue-draggable-grid.js",
-      "require": "./dist/vue-draggable-grid.cjs",
-      "default": "./dist/vue-draggable-grid.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
     },
-    "./styles": {
-      "import": "./dist/style.css",
-      "default": "./dist/style.css"
-    },
-    "./types": {
-      "import": "./dist/index.d.ts",
-      "require": "./dist/index.d.ts",
-      "default": "./dist/index.d.ts"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*",
-        "./dist/index.d.ts"
-      ]
-    }
+    "./styles": "./dist/style.css"
   },
   "scripts": {
     "dev": "vite",

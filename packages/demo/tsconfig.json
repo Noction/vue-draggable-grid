@@ -22,20 +22,12 @@
     }
   },
   "include": [
-    "src/**/**/*.ts",
+    "src/**/*.ts",
     "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
+    "src/**/*.vue"
   ],
   "exclude": [
-    "./node_modules/*",
-    "./node_modules/**",
-    "test/*",
-    "src/types/globals.ts",
-    "src/types/symbols.ts",
-    "src/helpers/*",
-    "src/main.ts",
-    "src/main.d.ts"
+    "./node_modules"
   ],
   "references": [
     {
