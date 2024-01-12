@@ -37,7 +37,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/vue-draggable-grid.js",
       "require": "./dist/vue-draggable-grid.cjs",
       "default": "./dist/vue-draggable-grid.js"
@@ -47,9 +47,9 @@
       "default": "./dist/style.css"
     },
     "./types": {
-      "import": "./dist/types/index.d.ts",
-      "require": "./dist/types/index.d.ts",
-      "default": "./dist/types/index.d.ts"
+      "import": "./dist/index.d.ts",
+      "require": "./dist/index.d.ts",
+      "default": "./dist/index.d.ts"
     }
   },
   "typesVersions": {
