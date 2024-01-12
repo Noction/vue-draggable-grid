@@ -1,6 +1,6 @@
 {
   "name": "@noction/vue-draggable-grid-monorepo",
-  "version": "1.9.11",
+  "version": "1.9.13",
   "scripts": {
     "lint": "pnpm -P -r \"/^lint:.*/\"",
     "lint:es": "pnpm -P -r lint:es",
@@ -9,7 +9,8 @@
     "build": "pnpm -P -r build",
     "test": "pnpm -F @noction/vue-draggable-grid test",
     "test:coverage": "pnpm -F @noction/vue-draggable-grid test:coverage",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "release": "pnpm run lint && bumpp package.json packages/demo/package.json packages/vue-draggable-grid/package.json --commit --push --tag"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.9.1",
@@ -30,7 +31,8 @@
     "typescript": "^5.2.2",
     "vue-eslint-parser": "^9.3.2",
     "simple-git-hooks": "^2.9.0",
-    "vue-tsc": "^1.8.22"
+    "vue-tsc": "^1.8.22",
+    "bumpp": "^9.2.1"
   },
   "engines": {
     "node": ">=18",
