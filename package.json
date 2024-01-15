@@ -1,6 +1,6 @@
 {
   "name": "@noction/vue-draggable-grid-monorepo",
-  "version": "1.9.14",
+  "version": "1.9.15",
   "scripts": {
     "lint": "pnpm -P -r \"/^lint:.*/\"",
     "lint:es": "pnpm -P -r lint:es",

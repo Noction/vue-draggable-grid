@@ -1,6 +1,6 @@
 {
   "name": "@noction/vue-draggable-grid",
-  "version": "1.9.14",
+  "version": "1.9.15",
   "type": "module",
   "description": "Vue3 grid layout with resize, drag and responsive",
   "homepage": "https://noction.github.io/vue-draggable-grid/",

@@ -1,6 +1,6 @@
 {
   "name": "demo",
-  "version": "1.9.14",
+  "version": "1.9.15",
   "scripts": {
     "dev": "vite",
     "build": "cross-env NODE_ENV=production vite build && vue-tsc --declaration --emitDeclarationOnly",
