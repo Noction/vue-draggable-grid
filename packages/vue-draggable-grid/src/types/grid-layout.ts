@@ -8,20 +8,20 @@ type LayoutEventKey =
   | 'noc-layout-mount'
   | 'noc-layout-ready'
   | 'noc-layout-update'
-  | 'update:noc-layout'
+
+type VModelEvents = {
+  'update:layout': [layout: Layout]
+  'update:breakpoints': [breakpoints: BreakpointsKeys]
+}
 
 type LayoutEvents = {
   [Key in LayoutEventKey]: [layout: Layout]
 }
 
-type BreakpointEventPayload = {
-  breakpoint: BreakpointsKeys
-  layout: Layout
-}
-
 export type GridLayoutEvents =
   & Pick<GridItemEvents, 'noc-resize-container'>
   & LayoutEvents
+  & VModelEvents
   & {
     'noc-intersection-observe': [id: Id[]]
     'noc-intersection-unobserve': [id: Id[]]
@@ -29,7 +29,6 @@ export type GridLayoutEvents =
     'noc-item-move-end': GridItemEvents['noc-move-end']
     'noc-item-resize': GridItemEvents['noc-resize']
     'noc-item-resize-end': GridItemEvents['noc-resize-end']
-    'update:noc-breakpoint': [payload: BreakpointEventPayload]
 }
 
 export type GridLayoutProps = {

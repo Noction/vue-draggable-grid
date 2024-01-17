@@ -1,13 +1,13 @@
 <template>
   <button @click="bar">
-    asdasd
+    Add
   </button>
   <grid-layout
     ref="gridLayout"
-    v-model:layout="layout"
+    v-model:noc-layout="layout"
     :col-num="colNum"
     :row-height="rowHeight"
-    @item-resize="containerResized"
+    @noc-item-resize="containerResized"
   >
     <template #gridItemContent="slotProps">
       <div>
@@ -98,7 +98,7 @@ export default defineComponent({
           // if height > 1
           // eslint-disable-next-line
           // @ts-ignore
-          const hasInLine = line.find(el => el.i === itemFromNextLine.i)
+          const hasInLine = line.find(el => el.id === itemFromNextLine.id)
 
           if (hasInLine) continue
 
