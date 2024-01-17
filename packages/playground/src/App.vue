@@ -11,7 +11,7 @@
   >
     <template #gridItemContent="slotProps">
       <div>
-        {{ slotProps.item.i }}
+        {{ slotProps.item.id }}
       </div>
     </template>
   </grid-layout>
@@ -27,18 +27,18 @@ export default defineComponent({
       colNum: 6,
       editable: false,
       layout: [
-        { h: 2, i: 0, w: 2, x: 0, y: 0 },
-        { h: 2, i: 1, w: 2, x: 2, y: 0 },
-        { h: 2, i: 2, w: 2, x: 4, y: 0 },
-        { h: 2, i: 3, w: 2, x: 0, y: 2 },
-        { h: 2, i: 4, w: 2, x: 2, y: 2 },
-        { h: 2, i: 5, w: 2, x: 4, y: 2 },
-        { h: 2, i: 6, w: 2, x: 0, y: 4 },
-        { h: 2, i: 7, w: 2, x: 2, y: 4 },
-        { h: 2, i: 8, w: 2, x: 4, y: 4 },
-        { h: 2, i: 9, w: 2, x: 0, y: 6 },
-        { h: 2, i: 10, w: 2, x: 2, y: 6 },
-        { h: 2, i: 11, w: 2, x: 4, y: 6 }
+        { h: 2, id: 0, w: 2, x: 0, y: 0 },
+        { h: 2, id: 1, w: 2, x: 2, y: 0 },
+        { h: 2, id: 2, w: 2, x: 4, y: 0 },
+        { h: 2, id: 3, w: 2, x: 0, y: 2 },
+        { h: 2, id: 4, w: 2, x: 2, y: 2 },
+        { h: 2, id: 5, w: 2, x: 4, y: 2 },
+        { h: 2, id: 6, w: 2, x: 0, y: 4 },
+        { h: 2, id: 7, w: 2, x: 2, y: 4 },
+        { h: 2, id: 8, w: 2, x: 4, y: 4 },
+        { h: 2, id: 9, w: 2, x: 0, y: 6 },
+        { h: 2, id: 10, w: 2, x: 2, y: 6 },
+        { h: 2, id: 11, w: 2, x: 4, y: 6 }
       ],
       margin: [10, 10]
     }
