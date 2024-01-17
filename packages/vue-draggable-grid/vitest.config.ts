@@ -1,11 +1,11 @@
 import { resolve }  from 'node:path'
-import vuePlugin from '@vitejs/plugin-vue'
+import vue from '@vitejs/plugin-vue'
 import { configDefaults, defineConfig } from 'vitest/config'
 
 const reportsDirectory = process.env.REPORTS_DIR ? process.env.REPORTS_DIR : './coverage'
 
 export default defineConfig({
-  plugins: [vuePlugin()],
+  plugins: [vue()],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')
