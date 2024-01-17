@@ -55,33 +55,33 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@interactjs/actions": "^1.10.26",
-    "@interactjs/auto-start": "^1.10.26",
-    "@interactjs/dev-tools": "^1.10.26",
-    "@interactjs/interactjs": "^1.10.26",
-    "@interactjs/modifiers": "^1.10.26",
-    "@types/element-resize-detector": "^1.1.6",
+    "@interactjs/actions": "^1.10.20",
+    "@interactjs/auto-start": "^1.10.20",
+    "@interactjs/dev-tools": "^1.10.20",
+    "@interactjs/interactjs": "^1.10.20",
+    "@interactjs/modifiers": "^1.10.20",
+    "@types/element-resize-detector": "^1.1.5",
     "element-resize-detector": "^1.2.4",
     "mitt": "^3.0.1",
-    "vue": "^3.4.14"
+    "vue": "^3.3.8"
   },
   "peerDependencies": {
     "vue": "^3.2.0"
   },
   "devDependencies": {
-    "@babel/types": "^7.23.6",
-    "@types/jest": "^29.5.11",
-    "@vitejs/plugin-vue": "^5.0.3",
-    "@vitest/coverage-v8": "^1.2.0",
+    "@babel/types": "^7.23.0",
+    "@types/jest": "^29.5.7",
+    "@vitejs/plugin-vue": "^4.4.0",
+    "@vitest/coverage-v8": "^0.34.6",
     "@vue/eslint-config-typescript": "^12.0.0",
-    "@vue/test-utils": "^2.4.3",
+    "@vue/test-utils": "^2.4.1",
     "cross-env": "^7.0.3",
-    "jsdom": "^23.2.0",
-    "sass": "^1.69.7",
-    "vite": "^5.0.11",
-    "vitest": "^1.2.0",
-    "vue-eslint-parser": "^9.4.0",
-    "vue-template-compiler": "^2.7.16",
-    "vue-tsc": "^1.8.27"
+    "jsdom": "^22.1.0",
+    "sass": "^1.69.5",
+    "vite": "^4.5.0",
+    "vitest": "^0.34.6",
+    "vue-eslint-parser": "^9.3.2",
+    "vue-template-compiler": "^2.7.15",
+    "vue-tsc": "^1.8.22"
   }
 }
