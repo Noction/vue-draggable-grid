@@ -1,5 +1,5 @@
 {
-  "name": "demo",
+  "name": "playground",
   "version": "1.9.15",
   "scripts": {
     "dev": "vite",

@@ -1,11 +1,11 @@
 import { CSSProperties } from 'vue'
-import {
+import { MovingDirections } from '@/types/helpers'
+import type {
   Layout,
   LayoutItem,
   MovingDirection,
-  MovingDirections,
   setPositionFnc
-} from '../types/helpers'
+} from '@/types/helpers'
 
 export const bottom = (layout: Layout): number => {
   let max = 0
@@ -50,7 +50,7 @@ export const compact = (layout: Layout, verticalCompact: boolean): Layout | unde
 
     let l = sorted[i]
 
-    if (!l.static) {
+    if (!l.isStatic) {
 
       l = compactItem(compareWith, l, verticalCompact)
       compareWith.push(l)
@@ -93,7 +93,7 @@ export const correctBounds  = (layout: Layout, bounds: { cols: number }): Layout
       l.w = bounds.cols
     }
 
-    if (!l.static) collidesWith.push(l)
+    if (!l.isStatic) collidesWith.push(l)
 
     else {
       while (getFirstCollision(collidesWith, l)) {
@@ -115,12 +115,12 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: number): LayoutItem => layout.filter(l => l.i === id)[0]
+export const getLayoutItem = (layout: Layout, id: number): LayoutItem => layout.filter(l => l.id === id)[0]
 
-export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.static)
+export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.isStatic)
 
 export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number, isUserAction: boolean, horizontalShift: boolean, preventCollision?: boolean): Layout => {
-  if (l.static) return layout
+  if (l.isStatic) return layout
 
   const oldX = l.x
   const oldY = l.y
@@ -159,7 +159,7 @@ export const moveElement = (layout: Layout, l: LayoutItem, x: number, y: number,
 
     const movingDirection = (Object.keys(moving) as MovingDirections[]).filter(k => moving[k])?.[0]
 
-    if (collision.static) {
+    if (collision.isStatic) {
       layout = moveElementAwayFromCollision(layout, collision, l, isUserAction, movingDirection, horizontalShift)
     } else {
       layout = moveElementAwayFromCollision(layout, l, collision, isUserAction, movingDirection, horizontalShift)
@@ -175,7 +175,7 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
   if (isUserAction) {
     const fakeItem: LayoutItem = {
       h: itemToMove.h,
-      i: -1,
+      id: -1,
       w: itemToMove.w,
       x: itemToMove.x,
       y: Math.max(collidesWith.y - itemToMove.h, 0)

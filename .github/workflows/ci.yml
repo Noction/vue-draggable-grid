@@ -82,7 +82,7 @@ jobs:
       - name: Install
         run: nci
 
-      - name: Build vue-draggable-grid
+      - name: Build lib
         run: nr build:lib
 
       - name: Typecheck
