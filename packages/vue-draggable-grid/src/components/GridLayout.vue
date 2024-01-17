@@ -161,7 +161,7 @@ watch(() => props.margin, () => {
 })
 watch(() => props.responsive, value => {
   if (!value) {
-    emit('update:noc-layout', originalLayout.value)
+    emit('update:layout', originalLayout.value)
     emitter.emit('set-col-num', props.colNum)
   }
   onWindowResize()
@@ -330,12 +330,12 @@ const responsiveGridLayout = (): void => {
   layouts.value[newBreakpoint] = layout
 
   if (lastBreakpoint.value !== newBreakpoint) {
-    emit('update:noc-breakpoint', { breakpoint: newBreakpoint, layout })
+    emit('update:breakpoints', newBreakpoint)
   }
 
   lastBreakpoint.value = newBreakpoint
 
-  emit('update:noc-layout', layout)
+  emit('update:layout', layout)
   emitter.emit('set-col-num', getColsFromBreakpoint(newBreakpoint, props.cols))
 }
 const onCreated = () => {
@@ -425,7 +425,7 @@ const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
     })
   }
 
-  emit('update:noc-layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
+  emit('update:layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
 
   compact(props.layout, props.verticalCompact)
 
