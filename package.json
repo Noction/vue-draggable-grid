@@ -11,7 +11,7 @@
     "test": "pnpm -F @noction/vue-draggable-grid test",
     "test:coverage": "pnpm -F @noction/vue-draggable-grid test:coverage",
     "prepare": "simple-git-hooks",
-    "release": "pnpm run lint && bumpp package.json packages/demo/package.json packages/vue-draggable-grid/package.json --commit --push --tag"
+    "release": "pnpm run lint && bumpp package.json packages/playground/package.json packages/vue-draggable-grid/package.json --commit --push --tag"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.9.1",

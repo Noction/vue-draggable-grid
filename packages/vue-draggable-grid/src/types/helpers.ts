@@ -1,3 +1,5 @@
+import { Id } from './components'
+
 export type Breakpoints = RecordBreakpoint<number>
 
 export type BreakpointsKeys = 'lg' | 'md' | 'sm' | 'xs' | 'xxs' | ''
@@ -12,16 +14,12 @@ export type LayoutItemOptional = {
   maxW?: number
   maxH?: number
   moved?: boolean
-  static?: boolean
+  isStatic?: boolean
   isDraggable?: boolean
   isResizable?: boolean
 }
 
-export type LayoutItemRequired = { w: number, h: number, x: number, y: number, i: number|string }
-
-export type LayoutItemsByYAxis = {
-  [K in string]: LayoutItem[]
-}
+export type LayoutItemRequired = { w: number, h: number, x: number, y: number, id: Id }
 
 export type MovingDirection = keyof typeof MovingDirections
 
