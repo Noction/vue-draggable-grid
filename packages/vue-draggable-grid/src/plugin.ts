@@ -1,6 +1,6 @@
 import type { App } from 'vue'
-import GridItem from './components/GridItem/GridItem.vue'
-import GridLayout from './components/GridLayout/GridLayout.vue'
+import GridItem from '@/components/GridItem.vue'
+import GridLayout from '@/components/GridLayout.vue'
 
 function install (app: App) {
   app.component('GridLayout', GridLayout)
