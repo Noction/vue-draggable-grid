@@ -1,5 +1,5 @@
 import { Emitter } from 'mitt'
-import { Events } from './globals'
 import { InjectionKey } from 'vue'
+import { MittEvents } from '@/types/mitt'
 
-export const emitterKey: InjectionKey<Emitter<Events>> = Symbol('$emitter')
+export const emitterKey: InjectionKey<Emitter<MittEvents>> = Symbol('$emitter')

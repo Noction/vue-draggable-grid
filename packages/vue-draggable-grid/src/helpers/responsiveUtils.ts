@@ -43,8 +43,8 @@ export const getBreakpointFromWidth = (breakpoints: Breakpoints, width: number):
   return matching
 }
 
-export const getColsFromBreakpoint = (breakpoint: keyof Breakpoints, cols: Breakpoints): number | undefined => {
-  return cols[breakpoint] ?? undefined
+export const getColsFromBreakpoint = (breakpoint: BreakpointsKeys, cols: Breakpoints): number => {
+  return cols[breakpoint]!
 }
 
 export const sortBreakpoints = (breakpoints: Breakpoints): BreakpointsKeys[] => {
