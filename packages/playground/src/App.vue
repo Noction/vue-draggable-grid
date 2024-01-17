@@ -1,10 +1,6 @@
 <template>
-  <button @click="bar">
-    Add
-  </button>
   <grid-layout
-    ref="gridLayout"
-    v-model:noc-layout="layout"
+    v-model:layout="layout"
     :col-num="colNum"
     :row-height="rowHeight"
     @noc-item-resize="containerResized"
@@ -48,17 +44,7 @@ export default defineComponent({
       return (window.innerWidth - 56) / 4
     }
   },
-  mounted () {
-    setTimeout(() => {
-      // this.rowHeight = 50
-    }, 5000)
-  },
   methods: {
-    bar () {
-      // eslint-disable-next-line
-      // @ts-ignore
-      this.$refs.gridLayout.alignGridItems()
-    },
     // eslint-disable-next-line
     // @ts-ignore
     containerResized (e) {
