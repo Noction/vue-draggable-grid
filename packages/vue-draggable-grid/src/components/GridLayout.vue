@@ -83,7 +83,7 @@ const props = withDefaults(
     intersectionObserverConfig: () => ({ root: null, rootMargin: '8px', threshold: 0.40 }),
     isDraggable: true,
     isResizable: true,
-    margin: () => ([10, 10]),
+    margin: () => ([10]),
     maxRows: Infinity,
     preventCollision: false,
     responsive: false,
@@ -273,9 +273,12 @@ const updateHeight = (): void => {
 const containerHeight = (): string | undefined => {
   if (!props.autoSize || !props.layout) return
 
-  const [, m2] = props.margin
+  const marginX = props.margin.length === 1
+    ? props.margin[0]
+    : props.margin[1]
 
-  return `${bottom(props.layout) * (props.rowHeight + m2) + m2}px`
+  return `${bottom(props.layout) * (props.rowHeight + marginX) + marginX}px`
+
 }
 const onWindowResize = (): void => {
   if (wrapper.value) {
