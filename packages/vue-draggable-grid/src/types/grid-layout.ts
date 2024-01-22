@@ -42,7 +42,7 @@ export type GridLayoutProps = {
   intersectionObserverConfig?: IntersectionObserverConfig
   isDraggable?: boolean
   isResizable?: boolean
-  margin?: number[]
+  margin?: Margin
   maxRows?: number
   preventCollision?: boolean,
   responsive?: boolean
@@ -52,3 +52,7 @@ export type GridLayoutProps = {
   useObserver?: boolean
   verticalCompact?: boolean
 }
+
+export type Margin =
+  | [number]
+  | [number, number]

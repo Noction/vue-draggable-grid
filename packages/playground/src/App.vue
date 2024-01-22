@@ -3,6 +3,8 @@
     v-model:layout="layout"
     :col-num="colNum"
     :row-height="rowHeight"
+    :margin="[10]"
+    :use-css-transforms="false"
     @noc-item-resize="containerResized"
   >
     <template #gridItemContent="slotProps">
@@ -35,8 +37,7 @@ export default defineComponent({
         { h: 2, id: 9, w: 2, x: 0, y: 6 },
         { h: 2, id: 10, w: 2, x: 2, y: 6 },
         { h: 2, id: 11, w: 2, x: 4, y: 6 }
-      ],
-      margin: [10, 10]
+      ]
     }
   },
   computed: {
