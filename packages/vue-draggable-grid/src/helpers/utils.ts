@@ -211,13 +211,16 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
   return moveElement(layout, itemToMove, movingCordsData.$default.x, movingCordsData.$default.y, horizontalShift, preventCollision)
 }
 
-export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => ({
-  height: `${height}px`,
-  left: `${left}px`,
-  position: 'absolute',
-  top: `${top}px`,
-  width: `${width}px`
-})
+export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => {
+  console.log(top, left, width, height)
+  return {
+    height: `${height}px`,
+    left: `${left}px`,
+    position: 'absolute',
+    top: `${top}px`,
+    width: `${width}px`
+  }
+}
 
 export const setTransform = (top: number, left: number, width: number, height: number): CSSProperties => ({
   height: `${height}px`,
