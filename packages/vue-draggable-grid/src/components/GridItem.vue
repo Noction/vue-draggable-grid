@@ -228,8 +228,6 @@ const createStyle = (): void => {
     pos.height = resizing?.value?.height ?? 0
   }
 
-  console.log(props.id)
-
   style.props = props.useCssTransforms
     ? setTransform(pos.top, pos.left, pos.width, pos.height)
     : setTopLeft(pos.top, pos.left, pos.width, pos.height)
