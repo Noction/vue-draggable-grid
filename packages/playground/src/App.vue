@@ -5,7 +5,6 @@
     :row-height="rowHeight"
     :margin="[10]"
     :use-css-transforms="false"
-    @noc-item-resize="containerResized"
   >
     <template #gridItemContent="slotProps">
       <div>
