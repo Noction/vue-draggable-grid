@@ -157,14 +157,21 @@ const calcColWidth = (): GridItemPosition['width'] => {
 
 const calcPosition = ({ x, y, w, h } : Dimensions): GridItemPosition => {
   const colWidth = calcColWidth()
-  const [m1, m2] = props.margin
 
-  return {
-    height: h === Infinity ? h : Math.round(props.rowHeight * h + Math.max(0, h - 1) * m2),
-    left: Math.round(colWidth * x + (x + 1) * m2),
-    top: Math.round(props.rowHeight * y + (y + 1) * m2),
-    width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * m1)
+  const handleMargins = (marginY: number, marginX: number) => {
+    return {
+      height: h === Infinity ? h : Math.round(props.rowHeight * h + Math.max(0, h - 1) * marginY),
+      left: Math.floor(colWidth * x + (x + 1) * marginX),
+      top: Math.round(props.rowHeight * y + (y + 1) * marginY),
+      width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * marginX)
+    }
   }
+
+  if (props.margin.length === 1) {
+    return handleMargins(props.margin[0], props.margin[0])
+  }
+
+  return handleMargins(props.margin[0], props.margin[1])
 }
 
 const calcWH = (height: GridItemPosition['height'], width: GridItemPosition['width']): Pick<Dimensions, 'w' | 'h'> => {
@@ -221,10 +228,11 @@ const createStyle = (): void => {
     pos.height = resizing?.value?.height ?? 0
   }
 
+  console.log(props.id)
+
   style.props = props.useCssTransforms
     ? setTransform(pos.top, pos.left, pos.width, pos.height)
     : setTopLeft(pos.top, pos.left, pos.width, pos.height)
-
 }
 const emitContainerResized = () => {
   createStyle()
