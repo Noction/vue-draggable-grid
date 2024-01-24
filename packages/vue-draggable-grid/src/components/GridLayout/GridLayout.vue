@@ -192,7 +192,23 @@ provide(emitterKey, emitter)
 
 // options
 const layoutItemRequired = { h: 0, i: -1, w: 0, x: 0, y: 0 }
-const layoutItemOptionalKeys = ['minW', 'minH', 'maxW', 'maxH', 'moved', 'static', 'isDraggable', 'isResizable']
+const layoutItemOptionalKeys = [
+  'minW',
+  'minH',
+  'maxW',
+  'maxH',
+  'moved',
+  'static',
+  'isDraggable',
+  'isResizable',
+  'isBounded',
+  'dragIgnoreFrom',
+  'dragAllowFrom',
+  'resizeIgnoreFrom',
+  'preserveAspectRatio',
+  'dragOption',
+  'resizeOption'
+]
 
 //data
 const erd = ref(elementResizeDetectorMaker({ callOnAdd: false, strategy: 'scroll' }))
