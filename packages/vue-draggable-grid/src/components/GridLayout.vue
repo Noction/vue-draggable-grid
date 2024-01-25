@@ -53,7 +53,7 @@ import {
   compact,
   getAllCollisions,
   getLayoutItem,
-  moveElement
+  moveElement, normalizeMargins
 } from '@/helpers/utils'
 import {
   computed,
@@ -290,9 +290,7 @@ const updateHeight = (): void => {
 const containerHeight = (): string | undefined => {
   if (!props.autoSize || !props.layout) return
 
-  const marginX = props.margin.length === 1
-    ? props.margin[0]
-    : props.margin[1]
+  const [, marginX] = normalizeMargins(props.margin)
 
   return `${bottom(props.layout) * (props.rowHeight + marginX) + marginX}px`
 

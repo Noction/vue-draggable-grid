@@ -15,6 +15,7 @@
 
 <script setup lang="ts">
 import { CSSProperties } from 'vue'
+import type { CompleteMargins } from '@/types'
 import { emitterKey } from '@/types/symbols'
 import { getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 import interact from '@interactjs/interactjs'
@@ -31,7 +32,7 @@ import {
   watch
 } from 'vue'
 import { createCoreData, getControlPosition } from '@/helpers/draggableUtils'
-import { setTopLeft, setTransform, stringReplacer } from '@/helpers/utils'
+import { normalizeMargins, setTopLeft, setTransform, stringReplacer } from '@/helpers/utils'
 
 const props = withDefaults(
   defineProps<GridItemProps>(),
@@ -150,15 +151,15 @@ watch(() => props.y, value => {
 })
 
 const calcColWidth = (): GridItemPosition['width'] => {
-  const [m1] = props.margin
+  const [marginY] = normalizeMargins(props.margin)
 
-  return (props.containerWidth - (m1 * (cols.value + 1))) / cols.value
+  return (props.containerWidth - (marginY * (cols.value + 1))) / cols.value
 }
 
 const calcPosition = ({ x, y, w, h } : Dimensions): GridItemPosition => {
   const colWidth = calcColWidth()
 
-  const handleMargins = (marginY: number, marginX: number) => {
+  const handleMargins = ([marginY, marginX]: CompleteMargins) => {
     return {
       height: h === Infinity ? h : Math.round(props.rowHeight * h + Math.max(0, h - 1) * marginY),
       left: Math.floor(colWidth * x + (x + 1) * marginX),
@@ -167,18 +168,17 @@ const calcPosition = ({ x, y, w, h } : Dimensions): GridItemPosition => {
     }
   }
 
-  if (props.margin.length === 1) {
-    return handleMargins(props.margin[0], props.margin[0])
-  }
+  const margins = normalizeMargins(props.margin)
 
-  return handleMargins(props.margin[0], props.margin[1])
+  return handleMargins(margins)
 }
 
 const calcWH = (height: GridItemPosition['height'], width: GridItemPosition['width']): Pick<Dimensions, 'w' | 'h'> => {
   const colWidth = calcColWidth()
-  const [m1, m2] = props.margin
-  const w = Math.round((width + m1) / (colWidth + m1))
-  const h = Math.round((height + m2) / (props.rowHeight + m2))
+  const [marginY, marginX] = normalizeMargins(props.margin)
+
+  const w = Math.round((width + marginY) / (colWidth + marginY))
+  const h = Math.round((height + marginX) / (props.rowHeight + marginX))
 
   return {
     h: Math.max(Math.min(h, props.maxRows - inner.value.y), 0),
@@ -188,9 +188,10 @@ const calcWH = (height: GridItemPosition['height'], width: GridItemPosition['wid
 
 const calcXY = (top: GridItemPosition['top'], left: GridItemPosition['left']): Pick<Dimensions, 'x' | 'y'> => {
   const colWidth = calcColWidth()
-  const [m1, m2] = props.margin
-  const x = Math.round((left - m1) / (colWidth + m1))
-  const y = Math.round((top - m2) / (props.rowHeight + m2))
+  const [marginY, marginX] = normalizeMargins(props.margin)
+
+  const x = Math.round((left - marginY) / (colWidth + marginY))
+  const y = Math.round((top - marginX) / (props.rowHeight + marginX))
 
   return {
     x: Math.max(Math.min(x, cols.value - inner.value.w), 0),
