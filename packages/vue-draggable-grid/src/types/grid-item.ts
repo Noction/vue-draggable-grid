@@ -1,3 +1,4 @@
+import { Margin } from '@/types/grid-layout'
 import type { Breakpoints, BreakpointsKeys } from '@/types/helpers'
 import type { Dimensions, GridItemPosition, Id } from '@/types/components'
 
@@ -17,7 +18,7 @@ export type GridItemProps = {
   isDraggable: boolean
   isResizable: boolean
   lastBreakpoint: BreakpointsKeys
-  margin: number[]
+  margin: Margin
   maxRows: number
   rowHeight: number
   useCssTransforms: boolean
