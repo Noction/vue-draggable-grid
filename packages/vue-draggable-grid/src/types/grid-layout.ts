@@ -18,6 +18,8 @@ type LayoutEvents = {
   [Key in LayoutEventKey]: [layout: Layout]
 }
 
+export type CompleteMargins = [number, number]
+
 export type GridLayoutEvents =
   & Pick<GridItemEvents, 'noc-resize-container'>
   & LayoutEvents
@@ -55,4 +57,4 @@ export type GridLayoutProps = {
 
 export type Margin =
   | [number]
-  | [number, number]
+  | CompleteMargins

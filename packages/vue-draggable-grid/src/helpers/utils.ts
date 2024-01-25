@@ -1,5 +1,6 @@
-import { CSSProperties } from 'vue'
+import type { CSSProperties } from 'vue'
 import { MovingDirections } from '@/types/helpers'
+import { CompleteMargins, Margin } from '@/types'
 import type {
   Layout,
   LayoutItem,
@@ -209,6 +210,12 @@ export const moveElementAwayFromCollision = (layout: Layout, collidesWith: Layou
   }
 
   return moveElement(layout, itemToMove, movingCordsData.$default.x, movingCordsData.$default.y, horizontalShift, preventCollision)
+}
+
+export const normalizeMargins = (margin: Margin): CompleteMargins => {
+  return margin.length === 1
+    ? [margin[0], margin[0]]
+    : margin
 }
 
 export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => {
