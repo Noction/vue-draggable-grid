@@ -45,11 +45,6 @@ export default defineComponent({
     }
   },
   methods: {
-    // eslint-disable-next-line
-    // @ts-ignore
-    containerResized (e) {
-      console.log(e)
-    },
     foo () {
       const groupWidgetByHeightInAxis = this.groupWidgetByHeightInAxis(this.layout)
       const yAxis = Object.keys(groupWidgetByHeightInAxis)

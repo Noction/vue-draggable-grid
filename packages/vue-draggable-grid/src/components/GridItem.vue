@@ -14,17 +14,16 @@
 </template>
 
 <script setup lang="ts">
-import { CSSProperties } from 'vue'
+import type { CSSProperties } from 'vue'
 import type { CompleteMargins } from '@/types'
-import { emitterKey } from '@/types/symbols'
 import { getColsFromBreakpoint } from '@/helpers/responsiveUtils'
 import interact from '@interactjs/interactjs'
+import useGridProvider from '@/composables/useGridProvider'
 import { Dimensions, GridItemPosition, HTMLDivElementWithId } from '@/types/components'
 import type { GridItemEvents, GridItemProps } from '@/types/grid-item'
 import { INTERSECTION_OBSERVER_ID, RESIZABLE_HANDLE_CLASS } from '@/constants'
 import {
   computed,
-  inject,
   onBeforeUnmount,
   onMounted,
   reactive,
@@ -51,8 +50,12 @@ const props = withDefaults(
 
 const emit = defineEmits<GridItemEvents>()
 
+const {
+  handleDragEvent,
+  handleResizeEvent
+} = useGridProvider()
+
 const item = ref<HTMLDivElementWithId | null>(null)
-const emitter = inject(emitterKey)
 
 const cols = ref(props.colNum)
 const dragEventSet = ref(false)
@@ -150,6 +153,10 @@ watch(() => props.y, value => {
   createStyle()
 })
 
+watch(() => props.calculateStylesTrigger, () => {
+  createStyle()
+})
+
 const calcColWidth = (): GridItemPosition['width'] => {
   const [marginY] = normalizeMargins(props.margin)
 
@@ -228,8 +235,6 @@ const createStyle = (): void => {
     // @ts-ignore
     pos.height = resizing?.value?.height ?? 0
   }
-
-  console.log(props.id)
 
   style.props = props.useCssTransforms
     ? setTransform(pos.top, pos.left, pos.width, pos.height)
@@ -331,9 +336,15 @@ const handleDrag = (event: any): void  => {
     })
   }
 
-  // eslint-disable-next-line
-  // @ts-ignore
-  emitter?.emit('drag-event', [event.type, props.id, pos.x, pos.y, inner.value.h, inner.value.w])
+  handleDragEvent({
+    callback: createStyle,
+    eventType: event.type,
+    h: inner.value.h,
+    id: props.id,
+    w: inner.value.w,
+    x: pos.x,
+    y: pos.y
+  })
 }
 
 // eslint-disable-next-line
@@ -429,12 +440,15 @@ const handleResize = (event: any): void => {
     })
   }
 
-  // eslint-disable-next-line
-  // @ts-ignore
-  emitter?.emit('resize-event', [event.type, props.id, inner.value.x, inner.value.y, pos.h, pos.w])
-}
-const setColNum = (colNum: number): void => {
-  cols.value = colNum
+  handleResizeEvent({
+    callback: createStyle,
+    eventType: event.type,
+    h: pos.h,
+    id: props.id,
+    w: pos.w,
+    x: inner.value.x,
+    y: inner.value.y
+  })
 }
 const tryMakeDraggable = (): void => {
   if (!interactObj.value && item.value) {
@@ -499,21 +513,7 @@ const tryMakeResizable = (): void => {
   }
 }
 
-const onCreate = () => {
-  emitter?.on('recalculate-styles', createStyle)
-  // eslint-disable-next-line
-  // @ts-ignore
-  emitter?.on('set-col-num', setColNum)
-}
-
-onCreate()
-
 onBeforeUnmount(() => {
-  emitter?.off('recalculate-styles', createStyle)
-  // eslint-disable-next-line
-  // @ts-ignore
-  emitter?.off('set-col-num', setColNum)
-
   if (interactObj.value) {
     // eslint-disable-next-line
     // @ts-ignore
