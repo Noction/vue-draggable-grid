@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'vue'
+import type { Id } from '@/types/components'
 import { MovingDirections } from '@/types/helpers'
 import { CompleteMargins, Margin } from '@/types'
 import type {
@@ -116,7 +117,7 @@ export const getFirstCollision = (layout: Layout, layoutItem: LayoutItem): Layou
   }
 }
 
-export const getLayoutItem = (layout: Layout, id: number): LayoutItem => layout.filter(l => l.id === id)[0]
+export const getLayoutItem = (layout: Layout, id: Id): LayoutItem => layout.filter(l => l.id === id)[0]
 
 export const getStatics = (layout: Layout): LayoutItem[] => layout.filter(l => l.isStatic)
 
@@ -219,7 +220,6 @@ export const normalizeMargins = (margin: Margin): CompleteMargins => {
 }
 
 export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => {
-  console.log(top, left, width, height)
   return {
     height: `${height}px`,
     left: `${left}px`,

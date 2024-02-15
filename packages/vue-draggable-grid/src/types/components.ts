@@ -13,8 +13,6 @@ export type GridItemClass =
   | 'vue-draggable-dragging'
   | 'vue-resizable'
 
-export type GridItemClasses = Record<GridItemClass, boolean>
-
 export interface GridItemPosition {
   height: number
   left: number
@@ -22,11 +20,18 @@ export interface GridItemPosition {
   width: number
 }
 
-export type GridLayoutEvent = [string, number, number, number, number, number]
+export type GridLayoutEvent<TEventType extends string = string> =
+  & Dimensions
+  & {
+  eventType: TEventType
+  id: Id
+  callback: () => void
+}
 
 export type HTMLDivElementWithId = HTMLDivElement & Record<typeof INTERSECTION_OBSERVER_ID, string | number>
 
-// export type Inner<Type> = Record<InnerKeys, Type>
+export type HandleDragEventArgs = GridLayoutEvent<'dragmove' | 'dragstart' | 'dragend'>
+export type HandleResizeEventArgs = GridLayoutEvent<'resizestart' | 'resizeend' | 'resizemove'>
 
 export type Id =
   | string

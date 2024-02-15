@@ -1,4 +1,5 @@
-import { Margin } from '@/types/grid-layout'
+import type { Margin } from '@/types/grid-layout'
+import type { Ref } from 'vue'
 import type { Breakpoints, BreakpointsKeys } from '@/types/helpers'
 import type { Dimensions, GridItemPosition, Id } from '@/types/components'
 
@@ -25,6 +26,11 @@ export type GridItemProps = {
   w: number
   x: number
   y: number
+  /**
+   * @deprecated
+   * @description Used only for compatibility after deleting mitt
+   */
+  calculateStylesTrigger: Ref<boolean>
 
   dragAllowFrom?: string | null
   dragIgnoreFrom?: string

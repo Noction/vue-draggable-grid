@@ -1,6 +1,12 @@
 import type { GridItemEvents } from '@/types/grid-item'
 import type { Breakpoints, BreakpointsKeys, Layout, ResponsiveLayout } from '@/types/helpers'
-import type { Id, IntersectionObserverConfig } from '@/types/components'
+import type {
+  Dimensions,
+  HandleDragEventArgs,
+  HandleResizeEventArgs,
+  Id,
+  IntersectionObserverConfig
+} from '@/types/components'
 
 type LayoutEventKey =
   | 'noc-layout-before-mount'
@@ -19,6 +25,8 @@ type LayoutEvents = {
 }
 
 export type CompleteMargins = [number, number]
+
+export type GridItemPlaceholder = Dimensions & Record<'id', Id>
 
 export type GridLayoutEvents =
   & Pick<GridItemEvents, 'noc-resize-container'>
@@ -53,6 +61,11 @@ export type GridLayoutProps = {
   useCssTransforms?: boolean
   useObserver?: boolean
   verticalCompact?: boolean
+}
+
+export type GridProvidedValues = {
+  handleDragEvent: (args: HandleDragEventArgs) => void
+  handleResizeEvent: (args: HandleResizeEventArgs) => void
 }
 
 export type Margin =
