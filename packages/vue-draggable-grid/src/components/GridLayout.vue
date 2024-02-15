@@ -34,18 +34,15 @@
 
 <script setup lang="ts">
 import GridItem from '@/components/GridItem.vue'
-import { INTERSECTION_OBSERVER_ID } from '@/constants'
-import { MittEvents } from '@/types/mitt'
 import elementResizeDetectorMaker from 'element-resize-detector'
-import { emitterKey } from '@/types/symbols'
-import mitt from 'mitt'
 import {
   BreakpointsKeys,
   Layout, LayoutItemRequired,
   RecordBreakpoint
 } from '@/types/helpers'
-import { GridLayoutEvent, Id } from '@/types/components'
-import { GridLayoutEvents, GridLayoutProps } from '@/types/grid-layout'
+import { GRID_PROVIDER_INJECTION_KEY, INTERSECTION_OBSERVER_ID } from '@/constants'
+import { GridItemPlaceholder, GridLayoutEvents, GridLayoutProps } from '@/types/grid-layout'
+import { HandleDragEventArgs, HandleResizeEventArgs, Id } from '@/types/components'
 import { addWindowEventListener, removeWindowEventListener } from '@/helpers/DOM'
 import {
   bottom,
@@ -96,10 +93,6 @@ const props = withDefaults(
 
 const emit = defineEmits<GridLayoutEvents>()
 
-const emitter = mitt<MittEvents>()
-
-provide(emitterKey, emitter)
-
 const layoutItemOptionalKeys = [
   'minW',
   'minH',
@@ -127,14 +120,23 @@ const lastLayoutLength = ref(0)
 const layouts = ref<RecordBreakpoint<Layout>>({})
 const mergedStyle = ref({})
 const originalLayout = ref(props.layout)
-const placeholder = ref({ h: 0, id: -1, w: 0, x: 0, y: 0 })
+const placeholder = ref<GridItemPlaceholder>({ h: 0, id: -1, w: 0, x: 0, y: 0 })
 const width = ref(0)
 let observer: IntersectionObserver
 const wrapper = ref<HTMLDivElement | null>(null)
 
+const columnsNumber = ref(props.colNum)
+
+/**
+ * @deprecated
+ * @description Used only for compatibility after deleting mitt
+ */
+const calculateStylesTrigger = ref(false)
+
 const gridItemProps = computed(() => ({
   breakpointCols: props.cols,
-  colNum: props.colNum,
+  calculateStylesTrigger,
+  colNum: columnsNumber.value,
   containerWidth: width.value,
   isDraggable: props.isDraggable,
   isResizable: props.isResizable,
@@ -148,7 +150,7 @@ const gridItemProps = computed(() => ({
 }))
 
 watch(() => props.colNum, value => {
-  emitter.emit('set-col-num', value)
+  columnsNumber.value = value
 })
 
 watch(() => props.layout.length, () => {
@@ -162,7 +164,7 @@ watch(() => props.margin, () => {
 watch(() => props.responsive, value => {
   if (!value) {
     emit('update:layout', originalLayout.value)
-    emitter.emit('set-col-num', props.colNum)
+    columnsNumber.value = props.colNum
   }
   onWindowResize()
 })
@@ -268,7 +270,7 @@ const layoutUpdate = (): void => {
     updateHeight()
 
     emit('noc-layout-update', props.layout)
-    emitter.emit('recalculate-styles')
+    calculateStylesTrigger.value = !calculateStylesTrigger.value
   }
 }
 const findDifference = (layout: Layout, originalLayout: Layout): Layout => {
@@ -337,15 +339,96 @@ const responsiveGridLayout = (): void => {
   lastBreakpoint.value = newBreakpoint
 
   emit('update:layout', layout)
-  emitter.emit('set-col-num', getColsFromBreakpoint(newBreakpoint, props.cols))
+  columnsNumber.value = getColsFromBreakpoint(newBreakpoint, props.cols)
 }
 const onCreated = () => {
   emit('noc-layout-create', props.layout)
-
-  emitter.on('resize-event', resizeEvent)
-  emitter.on('drag-event', dragEvent)
 }
-const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
+
+const createObserver = () => {
+  // eslint-disable-next-line
+  // @ts-ignore
+  observer = new IntersectionObserver(observerCallback, {
+    root: null,
+    rootMargin: '8px',
+    threshold: 0.40,
+    ...props.intersectionObserverConfig
+  })
+}
+
+// lifecycles
+onCreated()
+onBeforeUnmount(() => {
+  removeWindowEventListener('resize', onWindowResize)
+
+  if (erd.value && wrapper.value) {
+    erd.value.uninstall(wrapper.value)
+  }
+})
+onBeforeMount(() => {
+  emit('noc-layout-before-mount', props.layout)
+})
+
+onMounted(() => {
+  emit('noc-layout-mount', props.layout)
+  nextTick(() => {
+    originalLayout.value = props.layout
+
+    nextTick(() => {
+      onWindowResize()
+      initResponsiveFeatures()
+
+      addWindowEventListener('resize', onWindowResize.bind(this))
+      compact(props.layout, props.verticalCompact)
+
+      emit('noc-layout-update', props.layout)
+      updateHeight()
+
+      if (wrapper.value) {
+        erd.value.listenTo(wrapper.value, onWindowResize)
+      }
+
+      if (props.useObserver) {
+        createObserver()
+      }
+    })
+  })
+})
+
+function handleDragEvent ({ eventType, id, x, y, h, w, callback }: HandleDragEventArgs): void {
+  const layoutItem = getLayoutItem(props.layout, id)
+  const l = layoutItem ?? { ...layoutItemRequired }
+
+  if (eventType === 'dragmove' || eventType === 'dragstart') {
+    placeholder.value.id = id
+    placeholder.value.x = l.x
+    placeholder.value.y = l.y
+    placeholder.value.w = w
+    placeholder.value.h = h
+    nextTick(() => {
+      isDragging.value = true
+    })
+  } else {
+    nextTick(() => {
+      isDragging.value = false
+    })
+  }
+
+  emit('update:layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
+
+  compact(props.layout, props.verticalCompact)
+
+  callback()
+
+  updateHeight()
+
+  if (eventType === 'dragend') {
+    compact(props.layout, props.verticalCompact)
+    emit('noc-layout-update', props.layout)
+  }
+}
+
+function handleResizeEvent ({ eventType, id, x, y, h, w, callback }: HandleResizeEventArgs): void {
   const layoutItem = getLayoutItem(props.layout, id)
   const l = layoutItem ?? { ...layoutItemRequired }
 
@@ -378,7 +461,7 @@ const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
     l.h = h
   }
 
-  if (eventName === 'resizestart' || eventName === 'resizemove') {
+  if (eventType === 'resizestart' || eventType === 'resizemove') {
     placeholder.value.id = +id
     placeholder.value.x = x
     placeholder.value.y = y
@@ -399,97 +482,18 @@ const resizeEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
 
   compact(props.layout, props.verticalCompact)
 
-  emitter.emit('recalculate-styles')
+  callback()
+
   updateHeight()
 
-  if (eventName === 'resizeend') {
+  if (eventType === 'resizeend') {
     emit('noc-layout-update', props.layout)
   }
 }
 
-const dragEvent = ([eventName, id, x, y, h, w]: GridLayoutEvent): void => {
-  const layoutItem = getLayoutItem(props.layout, id)
-  const l = layoutItem ?? { ...layoutItemRequired }
-
-  if (eventName === 'dragmove' || eventName === 'dragstart') {
-    placeholder.value.id = +id
-    placeholder.value.x = l.x
-    placeholder.value.y = l.y
-    placeholder.value.w = w
-    placeholder.value.h = h
-    nextTick(() => {
-      isDragging.value = true
-    })
-  } else {
-    nextTick(() => {
-      isDragging.value = false
-    })
-  }
-
-  emit('update:layout', moveElement(props.layout, l, x, y, true, props.horizontalShift, props.preventCollision))
-
-  compact(props.layout, props.verticalCompact)
-
-  emitter.emit('recalculate-styles')
-  updateHeight()
-
-  if (eventName === 'dragend') {
-    compact(props.layout, props.verticalCompact)
-    emit('noc-layout-update', props.layout)
-  }
-}
-
-const createObserver = () => {
-  // eslint-disable-next-line
-  // @ts-ignore
-  observer = new IntersectionObserver(observerCallback, {
-    root: null,
-    rootMargin: '8px',
-    threshold: 0.40,
-    ...props.intersectionObserverConfig
-  })
-}
-
-// lifecycles
-onCreated()
-onBeforeUnmount(() => {
-  removeWindowEventListener('resize', onWindowResize)
-
-  if (erd.value && wrapper.value) {
-    erd.value.uninstall(wrapper.value)
-  }
-
-  emitter.off('resize-event', resizeEvent)
-  emitter.off('drag-event', dragEvent)
-})
-onBeforeMount(() => {
-  emit('noc-layout-before-mount', props.layout)
-})
-
-onMounted(() => {
-  emit('noc-layout-mount', props.layout)
-  nextTick(() => {
-    originalLayout.value = props.layout
-
-    nextTick(() => {
-      onWindowResize()
-      initResponsiveFeatures()
-
-      addWindowEventListener('resize', onWindowResize.bind(this))
-      compact(props.layout, props.verticalCompact)
-
-      emit('noc-layout-update', props.layout)
-      updateHeight()
-
-      if (wrapper.value) {
-        erd.value.listenTo(wrapper.value, onWindowResize)
-      }
-
-      if (props.useObserver) {
-        createObserver()
-      }
-    })
-  })
+provide(GRID_PROVIDER_INJECTION_KEY, {
+  handleDragEvent,
+  handleResizeEvent
 })
 </script>
 
