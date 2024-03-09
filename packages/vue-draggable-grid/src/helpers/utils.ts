@@ -219,7 +219,7 @@ export const normalizeMargins = (margin: Margin): CompleteMargins => {
 }
 
 export const setTopLeft: setPositionFnc<CSSProperties> = (top, left, width, height) => {
-  console.log(top, left, width, height)
+  // console.log(top, left, width, height)
   return {
     height: `${height}px`,
     left: `${left}px`,
