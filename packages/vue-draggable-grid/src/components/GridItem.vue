@@ -539,7 +539,6 @@ onMounted(() => {
   .vue-grid-item {
     box-sizing: border-box;
     touch-action: none;
-    background-color: #f2f2f2;
     transition: all .2s ease;
     transition-property: left, top, right;
 
