@@ -161,6 +161,9 @@ watch(() => props.layout.length, () => {
 watch(() => props.margin, () => {
   updateHeight()
 })
+watch(() => props.layout, () => {
+  updateHeight()
+})
 watch(() => props.responsive, value => {
   if (!value) {
     emit('update:layout', originalLayout.value)
